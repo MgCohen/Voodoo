@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b99417da059944baca407b3e61c5a271, type: 3}
+  m_Name: BattleRoyaleConfig
+  m_EditorClassIdentifier: 
+  m_Crown: {fileID: 1383414565337210472, guid: efbbf2c2cb66344159b1a2bfd596221f, type: 3}
+  m_Skull: {fileID: 4344715821946878904, guid: 0b796f27fd1e44d5d825c93c9bb05215, type: 3}
+  m_PowerUpOnDeathPrefab: {fileID: 114654402881123926, guid: a9b0ae2c230c545d7b18a414d8d10e22,
+    type: 3}

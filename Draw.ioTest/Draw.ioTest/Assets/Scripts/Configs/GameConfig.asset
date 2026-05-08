@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c725805b8e491445f90a3cfb8bab90dc, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  m_DebugLevel: 1
+  m_BrushPowerUpPrefab: {fileID: 114406100664639548, guid: 24a5c1e7971a14d4a9980eee0e182a0f,
+    type: 3}
+  m_HumanPlayer: {fileID: 1193150808822244, guid: 51f1d08532bfb0f4ebaffc93c89032a7,
+    type: 3}
+  m_IAPlayer: {fileID: 1181744322032206, guid: 8bc31daf86b2a64438fdf9d3a20c7c0b, type: 3}
+  m_HumanSpotlight: {fileID: 5301977967824784285, guid: d474f8182467e4237a8b2cf7ae74577b,
+    type: 3}
+  m_XPByRank: 640000004b000000320000002300000019000000140000000f0000000a0000000500000001000000
