@@ -23,11 +23,12 @@ namespace Prototype.Direct3D
         [SerializeField] private Shader m_ClippedShader;
 
         [Header("Layout")]
-        [SerializeField] private float m_BrushScale = 1f;
+        [SerializeField] private float m_ContainerScale = 14f; // world units; matches BrushMainMenu's m_BrushParent.localScale pattern (~140 there, ~14 here due to a different camera setup)
         [SerializeField] private float m_ZOffsetTowardCamera = 1f;
 
         private Direct3DCell[] m_Cells;
         private GameObject[] m_BrushInstances;
+        private Transform[] m_BrushContainers;
         private List<Renderer>[] m_BrushRenderers;
         private MaterialPropertyBlock m_Mpb;
 
@@ -72,15 +73,25 @@ namespace Prototype.Direct3D
                 return;
             }
 
-            m_BrushInstances = new GameObject[PrototypeSkinSet.Count];
-            m_BrushRenderers = new List<Renderer>[PrototypeSkinSet.Count];
+            m_BrushInstances  = new GameObject[PrototypeSkinSet.Count];
+            m_BrushContainers = new Transform[PrototypeSkinSet.Count];
+            m_BrushRenderers  = new List<Renderer>[PrototypeSkinSet.Count];
 
             for (int i = 0; i < PrototypeSkinSet.Count; i++)
             {
+                // Per-cell container, scaled like BrushMainMenu's m_BrushParent.
+                // Brush is parented to it at localScale=1, mirroring BrushMainMenu.Set().
+                var container = new GameObject($"BrushContainer_{i:00}").transform;
+                container.SetParent(m_BrushRoot, false);
+                container.localScale = Vector3.one * m_ContainerScale;
+                m_BrushContainers[i] = container;
+
                 GameObject prefab = m_BrushPrefabs[PrototypeSkinSet.PrefabIndex(i, prefabCount)];
-                GameObject brush = Instantiate(prefab, m_BrushRoot);
+                GameObject brush = Instantiate(prefab, container);
                 brush.name = $"Brush_{i:00}";
-                brush.transform.localScale = Vector3.one * m_BrushScale;
+                brush.transform.localPosition = Vector3.zero;
+                brush.transform.localRotation = Quaternion.identity;
+                brush.transform.localScale = Vector3.one;
 
                 PrototypeBrushUtil.StripGameplayComponents(brush);
 
@@ -94,7 +105,9 @@ namespace Prototype.Direct3D
                 ReplaceShader(renderers);
                 ApplyColor(renderers, PrototypeSkinSet.ColorFor(i));
 
-                var sync = brush.AddComponent<BrushScreenSync>();
+                // BrushScreenSync follows the cell with the CONTAINER, not the brush itself
+                // — keeps localScale=1 invariant on the brush.
+                var sync = container.gameObject.AddComponent<BrushScreenSync>();
                 sync.Init((RectTransform)m_Cells[i].transform, m_ZOffsetTowardCamera);
 
                 m_BrushInstances[i] = brush;

@@ -78,7 +78,7 @@ namespace Prototype.EditorTools
             PrototypeBuilderUtil.SetSerializedField(controller, "m_CellPrefab", cellTemplate);
             PrototypeBuilderUtil.SetSerializedField(controller, "m_SelectionHighlight", highlight.GetComponent<RectTransform>());
             PrototypeBuilderUtil.SetSerializedField(controller, "m_ClippedShader", clippedShader);
-            PrototypeBuilderUtil.SetSerializedField(controller, "m_BrushScale", 0.5f);
+            PrototypeBuilderUtil.SetSerializedField(controller, "m_ContainerScale", 14f);
             PrototypeBuilderUtil.SetSerializedField(controller, "m_ZOffsetTowardCamera", 1f);
 
             // --- Wire benchmark scenario
