@@ -50,9 +50,14 @@ The skin selection screen opens/closes from MainMenu without changing game phase
 public class SkinSelectionScreen : SingletonMB<SkinSelectionScreen>
 {
     [SerializeField] Animator m_Animator;
-    [SerializeField] Transform m_GridParent;       // ScrollRect content
-    [SerializeField] Transform m_HeroBrushParent;  // large preview container
-    [SerializeField] GameObject m_SkinCellPrefab;
+    [SerializeField] RectTransform m_GridParent;    // ScrollRect content
+    [SerializeField] Transform m_HeroBrushParent;   // large preview container
+    [SerializeField] GameObject m_SkinCellPrefab;   // RawImage + Button
+
+    [Header("Atlas rendering")]
+    [SerializeField] Camera m_AtlasCamera;          // ortho, layer 31 only
+    [SerializeField] Transform m_GridRoot;           // world-space brush parent
+    [SerializeField] int m_SkinPreviewLayer = 31;
 
     IGameService m_GameService;
     IStatsService m_StatsService;
@@ -60,6 +65,7 @@ public class SkinSelectionScreen : SingletonMB<SkinSelectionScreen>
     bool m_Visible;
     int m_SelectedSkin;
     List<SkinCell> m_Cells = new List<SkinCell>();
+    RenderTexture m_AtlasRT;
 
     [Inject]
     public void Construct(IGameService gameService, IStatsService statsService) { ... }
@@ -87,41 +93,151 @@ public void Hide()
 
 ## Step 4: 3D skin rendering in the grid
 
-### Approach: world-space 3D objects (matching existing pattern)
+### Approach: Atlas RenderTexture (prototyped and validated)
 
-**Do NOT use RenderTextures.** Follow the BrushMainMenu approach:
+> **Prototype reference:** `Assets/Prototype/06_Atlas/` — working scene with 30 skins at 590+ FPS.
+> Build it via `Tools > Prototype > Build #06 Atlas Scene`, then hit Play.
 
-1. Create an off-screen container at e.g. `(0, -50, 0)` — holds 12 brush instances in a grid layout
-2. Each brush instance is a menu-variant prefab (`Brush_X-Menu.prefab`), colored per its SkinData
-3. Each instance has a `BrushRotation`-style script for slow auto-rotation
-4. A secondary orthographic camera renders ONLY these objects (separate culling layer, e.g. `SkinPreview`)
-5. This camera outputs to a RenderTexture displayed in the ScrollRect
+One offscreen orthographic camera renders ALL brush prefabs into a **single shared RenderTexture** every frame. Each UI cell is a `RawImage` whose `uvRect` samples its sub-region of that RT. Brushes rotate live, keep their original materials, and scrolling/masking is handled entirely by standard Unity UI.
 
-**Wait — the test says scrollable list.** With 12 items in a scroll view, world-space 3D objects don't scroll with UI naturally. Two viable approaches:
+```
+  World space (layer 31, hidden from main camera)
+  ┌──────────────────────────────────┐
+  │  GridRoot  (at y = -100)         │
+  │  ┌───┐ ┌───┐ ┌───┐              │
+  │  │ B0│ │ B1│ │ B2│              │       ┌────────────────┐
+  │  └───┘ └───┘ └───┘              │──────>│ RenderTexture   │
+  │  ┌───┐ ┌───┐ ┌───┐              │       │ (512 x 768)    │
+  │  │ B3│ │ B4│ │ B5│              │       └───────┬────────┘
+  │  └───┘ └───┘ └───┘              │               │
+  │  ...                             │               v
+  └──────────────────────────────────┘       ┌────────────────┐
+         ^                                   │ UI ScrollRect   │
+    AtlasCamera                              │ ┌────┐  ┌────┐ │
+    (ortho, layer 31 only)                   │ │cell│  │cell│ │
+                                             │ │uv00│  │uv10│ │
+                                             │ └────┘  └────┘ │
+                                             └────────────────┘
+```
 
-### Option A: Single RenderTexture camera (simpler, recommended)
-- 12 brush models placed off-screen in a grid
-- One orthographic camera with `SkinPreview` culling layer → one RenderTexture
-- `RawImage` in UI shows the full grid
-- Scroll the RawImage's `uvRect` to simulate scrolling, or just make the grid small enough to not need scrolling (3×4 fits)
-- Selection via raycasting from UI click position → world position → which brush was hit
+### 4.1 — Layer setup
 
-### Option B: Individual cells with 3D (complex)
-- Each cell is a UI element with a transparent area
-- Position 3D brush models to align with each cell's screen position
-- Update positions when scrolling — this is fragile and messy
+Create layer 31 `SkinPreview` (or any free layer).
+- Main UI camera: `cullingMask = ~(1 << 31)` — excludes brush meshes.
+- Atlas camera: `cullingMask = 1 << 31` — renders ONLY brush meshes.
 
-### Option C: Just use 2D thumbnails for the grid, 3D for hero only (pragmatic)
-- Grid cells show pre-rendered 2D sprite thumbnails of each skin
-- Only the hero preview at top is a live 3D rotating brush (following BrushMainMenu pattern exactly)
-- Simplest to implement, most performant, scrolling works naturally
-- **This is the recommended approach** — 3D in a scroll list is overengineered for 12 items
+### 4.2 — RenderTexture creation
 
-For Option C:
-- Create 12 sprite thumbnails (screenshot each brush in editor, save as sprites)
-- OR render them once at runtime into small RenderTextures on screen open, then display as RawImages
+One RT for all skins. Aspect ratio must match the grid layout (cols : rows).
 
-The hero preview reuses `BrushMainMenu.Set(SkinData)` directly — it's already built for this.
+```csharp
+// 12 skins in 3×4 grid → 512 × 768 px.  (For 30 skins: 3×10 → 512 × 1708 px.)
+int rtWidth  = 512;
+int rtHeight = Mathf.RoundToInt(rtWidth * ((float)rows / cols));
+
+var rt = new RenderTexture(rtWidth, rtHeight, 16, RenderTextureFormat.ARGB32);
+rt.useMipMap = false;
+rt.antiAliasing = 1;
+rt.Create();
+```
+
+### 4.3 — Atlas camera
+
+```csharp
+atlasCamera.targetTexture     = rt;
+atlasCamera.cullingMask       = 1 << 31;
+atlasCamera.clearFlags        = CameraClearFlags.SolidColor;
+atlasCamera.backgroundColor   = new Color(0, 0, 0, 0);   // transparent
+atlasCamera.orthographic      = true;
+atlasCamera.orthographicSize  = rows * worldCellSize * 0.5f;
+atlasCamera.aspect            = (float)cols / rows;
+```
+
+### 4.4 — Spawn brush prefabs in a world-space grid
+
+```csharp
+for (int i = 0; i < skinCount; i++)
+{
+    int col = i % cols;
+    int row = i / cols;
+
+    // Center grid on GridRoot origin.
+    Vector3 pos = new Vector3(
+        (col - (cols - 1) * 0.5f) * worldCellSize,
+       -(row - (rows - 1) * 0.5f) * worldCellSize,
+        0f);
+
+    // Use menu-variant prefabs for correct selective coloring.
+    GameObject brush = Instantiate(menuPrefab, gridRoot);
+    brush.transform.localPosition = pos;
+
+    SetLayerRecursive(brush, 31);        // atlas camera only
+    brush.AddComponent<BrushRotation>(); // 90 deg/s auto-rotate
+
+    // Color only the parts BrushMenu.m_BrushParts specifies (roller + grip, NOT handle).
+    var renderers = CollectColorableRenderers(brush);
+    ApplyBrushColor(brush, renderers, skinColor);
+}
+```
+
+### 4.5 — UI cells (RawImage + uvRect)
+
+Each cell is a `RawImage` that samples its sub-rect of the shared RT:
+
+```csharp
+float uvW = 1f / cols;   // e.g. 1/3
+float uvH = 1f / rows;   // e.g. 1/4
+
+for (int i = 0; i < skinCount; i++)
+{
+    int col = i % cols;
+    int row = i / cols;
+
+    // UV origin is bottom-left; grid row 0 is visual top.
+    Rect uv = new Rect(col * uvW, 1f - (row + 1) * uvH, uvW, uvH);
+
+    var rawImage = cell.GetComponent<RawImage>();
+    rawImage.texture = rt;
+    rawImage.uvRect  = uv;
+}
+```
+
+### 4.6 — Lighting
+
+Replicate the production main menu Spotlight so brushes look correct:
+
+```csharp
+RenderSettings.ambientMode  = AmbientMode.Flat;
+RenderSettings.ambientLight = new Color(0.85f, 0.80f, 0.75f);  // warm gray
+
+var light       = new GameObject("Light").AddComponent<Light>();
+light.type      = LightType.Directional;
+light.color     = new Color(1f, 1f, 0.835f);   // warm white
+light.intensity = 1.1f;
+light.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+```
+
+### 4.7 — Selective coloring (important!)
+
+The production system does NOT color every renderer. Only specific parts get colored:
+
+| Prefab type | Source list | What gets colored |
+|-------------|-----------|-------------------|
+| Menu (`BrushMenu`) | `BrushMenu.m_BrushParts` | Roller + grip only |
+| Gameplay (`Brush`) | `Brush.m_Renderers` + `Brush.m_DarkRenderers` | Main body + darkened parts (×0.8) |
+
+The handle (Manche) stays its original dark material. See `PrototypeBrushUtil.CollectColorableRenderers()` and `ApplyBrushColor()` for the working implementation.
+
+### Why this approach
+
+| Concern | Answer |
+|---------|--------|
+| Performance | 590 FPS idle, 394 FPS under selection stress (30 skins, desktop). Trivial cost for 12. |
+| Draw calls | All RawImage cells share one texture → ~1 UI draw call for the entire grid |
+| Scrolling | Standard ScrollRect + Mask — cells are normal UI elements, scrolling just works |
+| Materials | Original brush shaders preserved — no clipping shaders, no material replacement |
+| Memory | 1 RT (512×768 for 12 skins) ≈ 1.5 MB. Negligible. |
+| Cleanup | Disable atlas camera in `OnDisable`, release RT in `OnDestroy` |
 
 ---
 
@@ -131,51 +247,74 @@ First ScrollRect in this project. Layout:
 
 ```
 ScrollRect (vertical)
-  └── Content (GridLayoutGroup, 3 columns)
-       ├── SkinCell_0
-       ├── SkinCell_1
-       ├── ...
-       └── SkinCell_11
+  └── Viewport (Image + Mask)
+       └── Content (GridLayoutGroup, 3 columns)
+            ├── SkinCell_0  (RawImage sampling uvRect of shared RT)
+            ├── SkinCell_1
+            ├── ...
+            └── SkinCell_11
 ```
 
 ### SkinCell.cs
 `Assets/Scripts/UI/SkinCell.cs`
 
+Each cell uses a `RawImage` (not `Image`) because it samples a sub-rect of the shared atlas RenderTexture.
+
 ```csharp
 public class SkinCell : MonoBehaviour
 {
-    [SerializeField] Image m_Thumbnail;
-    [SerializeField] Image m_SelectedBorder;
+    [SerializeField] RawImage m_RawImage;
     [SerializeField] Button m_Button;
 
     int m_SkinIndex;
     System.Action<int> m_OnClick;
 
-    public void Setup(int index, Sprite thumbnail, bool selected, Action<int> onClick)
+    /// Called once after instantiation.
+    /// _Atlas  — the shared RenderTexture all cells sample from.
+    /// _UvRect — the sub-region of the atlas this cell should display.
+    public void Setup(int index, Texture atlas, Rect uvRect, Action<int> onClick)
     {
         m_SkinIndex = index;
-        m_Thumbnail.sprite = thumbnail;
-        m_SelectedBorder.gameObject.SetActive(selected);
         m_OnClick = onClick;
-        m_Button.onClick.AddListener(() => m_OnClick?.Invoke(m_SkinIndex));
-    }
 
-    public void SetSelected(bool selected)
-    {
-        m_SelectedBorder.gameObject.SetActive(selected);
+        m_RawImage.texture = atlas;
+        m_RawImage.uvRect  = uvRect;
+
+        m_Button.onClick.RemoveAllListeners();
+        m_Button.onClick.AddListener(() => m_OnClick?.Invoke(m_SkinIndex));
     }
 }
 ```
 
 Cells are instantiated dynamically — follows `LoadingView` pattern:
 ```csharp
+float uvW = 1f / cols;
+float uvH = 1f / rows;
+
 for (int i = 0; i < skins.Length; i++)
 {
-    GameObject obj = Instantiate(m_SkinCellPrefab, Vector3.zero, Quaternion.identity);
-    obj.transform.SetParent(m_GridParent, false);
+    int col = i % cols;
+    int row = i / cols;
+    Rect uv = new Rect(col * uvW, 1f - (row + 1) * uvH, uvW, uvH);
+
+    var obj = Instantiate(m_SkinCellPrefab, m_GridParent);
     var cell = obj.GetComponent<SkinCell>();
-    cell.Setup(i, thumbnails[i], i == m_SelectedSkin, OnCellClicked);
+    cell.Setup(i, m_AtlasRT, uv, OnCellClicked);
     m_Cells.Add(cell);
+}
+```
+
+Selection highlight can be a semi-transparent `Image` that reparents to the selected cell (same approach as prototype):
+```csharp
+void OnCellClicked(int index)
+{
+    m_SelectedSkin = index;
+    m_SelectionHighlight.SetParent(m_Cells[index].transform, false);
+    m_SelectionHighlight.anchorMin = Vector2.zero;
+    m_SelectionHighlight.anchorMax = Vector2.one;
+    m_SelectionHighlight.offsetMin = Vector2.zero;
+    m_SelectionHighlight.offsetMax = Vector2.zero;
+    // Update hero preview...
 }
 ```
 
@@ -227,14 +366,39 @@ DOTween is available. Low-effort additions:
 
 | Original plan | Problem | Fix |
 |--------------|---------|-----|
-| RenderTexture per skin (128x128 × 12) | Project uses world-space 3D objects, no RenderTextures anywhere | Use 2D thumbnails in grid + 3D hero preview following BrushMainMenu pattern |
-| `SkinPreviewItem.cs` with RT setup | Foreign pattern | Removed. Use SkinCell with sprite thumbnails |
+| RenderTexture per skin (128x128 × 12) | 12 separate RTs = 12 cameras or 12 Render calls | Single shared atlas RT + 1 ortho camera (prototyped, validated at 590+ FPS with 30 skins) |
+| 2D sprite thumbnails | Static images, no live rotation, requires pre-baked assets | Atlas RT gives live rotating 3D for free — no thumbnail assets needed |
+| Direct 3D in UI (no RT) | Scissor/clipping is fragile across render pipelines, broke on Deferred | Atlas RT approach avoids clipping entirely — UI Mask handles it via standard ScrollRect |
+| `SkinPreviewItem.cs` with RT setup | Foreign pattern, one camera per skin | Single SkinCell with RawImage + uvRect sampling shared atlas |
 | `View<SkinSelectionView>` | SettingsPanel (closest pattern) is NOT a View\<T>, uses Animator | Follow SettingsPanel: `SingletonMB<T>` + Animator |
-| "SkinPreviewManager" managing 12 cameras | Overengineered | One hero preview reusing BrushMainMenu pattern |
-| RenderTexture assets (12×128 + 1×256) | Unnecessary | Sprite thumbnails for grid cells |
-| "Only render visible cells" optimization | No ScrollRect exists in project to reference | Simple ScrollRect + GridLayoutGroup, all 12 cells rendered (trivial count) |
+| "SkinPreviewManager" managing 12 cameras | Overengineered | One atlas camera + one hero preview reusing BrushMainMenu pattern |
+| "Only render visible cells" optimization | No ScrollRect exists in project to reference | Simple ScrollRect + GridLayoutGroup, all cells rendered (trivial count) |
 | Save to `PlayerPrefs.SetInt("FavoriteSkin", index)` directly | Existing code uses `StatsService.FavoriteSkin` property | Use `StatsService.FavoriteSkin` |
-| Menu brush prefabs not mentioned | `Prefabs/Brushs/MainMenuBrushes/Brush_X-Menu.prefab` exist for menu display | Use menu-variant prefabs for hero preview |
+| Menu brush prefabs not mentioned | `Prefabs/Brushs/MainMenuBrushes/Brush_X-Menu.prefab` exist for menu display | Use menu-variant prefabs — they have `BrushMenu.m_BrushParts` for correct selective coloring |
+| Color all renderers | Handles (Manche) get colored, looks wrong | Use `BrushMenu.m_BrushParts` (menu prefabs) or `Brush.m_Renderers`+`m_DarkRenderers` (gameplay prefabs) |
+
+---
+
+## Prototype reference
+
+The atlas RT approach has been prototyped and benchmarked:
+
+| | |
+|---|---|
+| **Prototype scene** | `Assets/Prototype/06_Atlas/Prototype_06_Atlas.unity` |
+| **Build it** | `Tools > Prototype > Build #06 Atlas Scene` |
+| **Implementation guide** | `Assets/Prototype/06_Atlas/IMPLEMENTATION_GUIDE.md` |
+| **Key runtime files** | `SkinAtlasRenderer.cs`, `AtlasCell.cs` |
+| **Shared helpers** | `Shared/PrototypeBrushUtil.cs`, `Shared/PrototypeSkinSet.cs` |
+
+Desktop benchmark results (30 skins, uncapped FPS):
+
+| Phase | FPS | Frame avg |
+|-------|-----|-----------|
+| Idle | 607 | 1.65 ms |
+| Scroll | 590 | 1.70 ms |
+| Selection | 394 | 2.54 ms |
+| Recolor | 549 | 1.82 ms |
 
 ---
 
@@ -243,11 +407,12 @@ DOTween is available. Low-effort additions:
 | File | Type | Location |
 |------|------|----------|
 | `SkinSelectionScreen.cs` | SingletonMB\<T> | `Scripts/UI/` |
-| `SkinCell.cs` | MonoBehaviour | `Scripts/UI/` |
+| `SkinCell.cs` | MonoBehaviour (RawImage + Button) | `Scripts/UI/` |
 | SkinSelectionScreen | Scene GameObject | Canvas hierarchy in Game.unity |
-| SkinCell prefab | UI Prefab | `Prefabs/UI/` |
+| SkinCell prefab | UI Prefab (RawImage + Button) | `Prefabs/UI/` |
 | 6 new SkinData assets | ScriptableObject | `Resources/Skins/` |
-| 12 thumbnail sprites | Sprite | `Assets/Sprites/SkinThumbnails/` |
 | Animator controller | Animation | `Assets/Animations/` |
 | MainMenuView.cs | Edit existing | `Scripts/UI/` |
 | Hero preview container | Scene GameObject | World-space in Game.unity |
+| Atlas camera | Scene GameObject (layer 31 only) | World-space in Game.unity |
+| GridRoot | Scene GameObject (brush instances, layer 31) | World-space in Game.unity |

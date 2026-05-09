@@ -39,6 +39,18 @@ public class MobileHapticManager : MonoBehaviour {
 	}
 
     public static bool s_Vibrate = true;
+
+    private static readonly Dictionary<E_FeedBackType, long> androidForces = new Dictionary<E_FeedBackType, long>
+    {
+        { E_FeedBackType.SelectionChange, 20 },
+        { E_FeedBackType.ImpactLight, 30 },
+        { E_FeedBackType.ImpactMedium, 50 },
+        { E_FeedBackType.ImpactHeavy, 80 },
+        { E_FeedBackType.Success, 40 },
+        { E_FeedBackType.Warning, 60 },
+        { E_FeedBackType.Failure, 100 },
+        { E_FeedBackType.None, 0 }
+    };
 		
 	public void Vibrate (E_FeedBackType type){
 
