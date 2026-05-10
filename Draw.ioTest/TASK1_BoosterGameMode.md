@@ -384,8 +384,6 @@ New file: `Scripts/Gameplay/Data/BoosterLevelData.cs`
 [CreateAssetMenu(fileName = "BoosterLevelData", menuName = "Data/BoosterLevelData")]
 public class BoosterLevelData : ScriptableObject
 {
-    public int m_LevelIndex;
-
     [Header("Power-ups")]
     public List<PowerUpData> m_AvailablePowerUps;
     public float m_MinPowerUpRate = 1f;
@@ -436,19 +434,15 @@ public class BoosterGameMode : IGameMode
 {
     private readonly IStatsService m_StatsService;
     private readonly BoosterModeConfig m_Config;
-    private BoosterLevelData m_CurrentLevel;
 
     public BoosterGameMode(IStatsService _StatsService, BoosterModeConfig _Config)
     {
         m_StatsService = _StatsService;
         m_Config = _Config;
-        // m_CurrentLevel resolved lazily on first property access — by then, the active
-        // prefix is already "Booster_" (set inside SetGameMode), so GetPlayerLevel returns
-        // the booster-scoped value.
     }
 
     private BoosterLevelData CurrentLevel =>
-        m_CurrentLevel ??= m_Config.GetLevel(m_StatsService.GetPlayerLevel());
+        m_Config.GetLevel(m_StatsService.GetPlayerLevel());
 
     public string StatsKeyPrefix => "Booster_";
 
@@ -469,7 +463,8 @@ public class BoosterGameMode : IGameMode
         else if (_PlayerRank >= 2)   rankingScore = 0;
 
         m_StatsService.AddGameResult(rankingScore);
-        m_StatsService.SetLastXP(m_Config.m_XPByRank[_PlayerRank]);
+        int xpIndex = Mathf.Min(_PlayerRank, m_Config.m_XPByRank.Count - 1);
+        m_StatsService.SetLastXP(m_Config.m_XPByRank[xpIndex]);
     }
 
     public void OnPostEndGame()
@@ -479,7 +474,7 @@ public class BoosterGameMode : IGameMode
 }
 ```
 
-Construction order: `StartBoosterMode()` calls `SetGameMode(new BoosterGameMode(...))`. The `new` evaluates first (constructor stores refs but does not read PlayerLevel), then `SetGameMode` flips the prefix to `"Booster_"` on StatsService. First property access during `ChangePhase(LOADING)` triggers the lazy `CurrentLevel` resolution, which reads `Booster_Lvl` correctly. Each `StartBoosterMode` call constructs a fresh BoosterGameMode, so `m_CurrentLevel` is always recomputed — no stale cache between matches.
+`BoosterGameMode` is stateless — `CurrentLevel` reads fresh from `BoosterModeConfig.GetLevel(GetPlayerLevel())` each access, so after a level-up the next match automatically picks up the new level data. The instance lives in `m_GameModes[1]` alongside ClassicGameMode, created once in `Init()`. Properties are only read during `ChangePhase(LOADING)` and `OnPreEndGame` — a handful of calls per match, not per frame.
 
 ### Step 2.4: ManagersInstaller wiring
 
@@ -513,9 +508,18 @@ Add to `GameService`:
 ```csharp
 public void StartBoosterMode()
 {
-    SetGameMode(new BoosterGameMode(m_StatsService, m_BoosterModeConfig));
+    SetGameMode(m_GameModes[1]);
     ChangePhase(GamePhase.LOADING);
 }
+```
+
+`Init()` adds BoosterGameMode to the cached list:
+```csharp
+m_GameModes = new List<IGameMode>
+{
+    new ClassicGameMode(m_StatsService, m_XPByRank),
+    new BoosterGameMode(m_StatsService, m_BoosterModeConfig),
+};
 ```
 
 Add `void StartBoosterMode()` to `IGameService`. The booster config dependency stays inside GameService — call sites (MainMenuView) don't need to inject it.
@@ -557,7 +561,7 @@ Wire the new button in the `MainMenuView` prefab to `OnBoosterButton`. Classic P
 | `Scripts/Configs/BoosterModeConfig.cs` | New |
 | `Scripts/Gameplay/BoosterGameMode.cs` | New |
 | `Scripts/Installers/ManagersInstaller.cs` | Edit — `BoosterModeConfig` field + binding |
-| `Scripts/Services/GameService.cs` | Edit — inject `BoosterModeConfig`, `StartBoosterMode` |
+| `Scripts/Services/GameService.cs` | Edit — inject `BoosterModeConfig`, `StartBoosterMode`, add BoosterGameMode to `m_GameModes` |
 | `Scripts/Interfaces/Services/IGameService.cs` | Edit — `StartBoosterMode` |
 | `Scripts/UI/MainMenuView.cs` | Edit — `OnBoosterButton` |
 
@@ -709,7 +713,7 @@ Create `Resources/BoosterPowerUps/` for the new `PowerUpData` assets.
 | `Scripts/Gameplay/ClassicGameMode.cs` | 1 | New |
 | `Scripts/Services/StatsService.cs` | 1 | Edit — active prefix on every per-mode key |
 | `Scripts/Interfaces/Services/IStatsService.cs` | 1 | Edit — `SetActiveStatsPrefix`, `GetBestScore` |
-| `Scripts/Services/GameService.cs` | 1 + 2 | Edit — `m_CurrentGameMode`, `SetGameMode`/`StartBoosterMode`, delegate reads, split end hooks, MAIN_MENU reset |
+| `Scripts/Services/GameService.cs` | 1 + 2 | Edit — `m_GameModes` list, `SetGameMode`/`StartBoosterMode`, delegate reads, split end hooks, MAIN_MENU reset |
 | `Scripts/Interfaces/Services/IGameService.cs` | 1 + 2 | Edit — `SetGameMode`/`StartBoosterMode`/`PlayerCount`/`GetAIDifficulty*` |
 | `Scripts/UI/LoadingView.cs` | 1 | Edit — `Constants.s_PlayerCount` → `GameService.PlayerCount` (5 sites) |
 | `Scripts/UI/EndView.cs` | 1 | Edit — same swap (1 site) |
