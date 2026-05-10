@@ -41,12 +41,6 @@ public class ConstantsRegressionTests
     // ---- Gameplay values ----
 
     [Test]
-    public void PlayerCount_IsEight()
-    {
-        Assert.AreEqual(8, Constants.s_PlayerCount);
-    }
-
-    [Test]
     public void SavedGameCount_IsFive()
     {
         Assert.AreEqual(5, Constants.c_SavedGameCount);

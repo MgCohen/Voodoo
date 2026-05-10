@@ -49,6 +49,7 @@ public class GameService : IGameService
     public bool m_AlreadyRevive = false;
 
     private IGameMode m_CurrentGameMode;
+    private List<IGameMode> m_GameModes;
     public int PlayerCount => m_CurrentGameMode.PlayerCount;
     public float GetAIDifficultyMin() => m_CurrentGameMode.AIDifficultyMin;
     public float GetAIDifficultyMax() => m_CurrentGameMode.AIDifficultyMax;
@@ -137,7 +138,11 @@ public class GameService : IGameService
 
         m_PlayerNameData = Resources.Load<PlayerNameData>("PlayerNames");
 
-        SetGameMode(new ClassicGameMode(m_StatsService, m_XPByRank));
+        m_GameModes = new List<IGameMode>
+        {
+            new ClassicGameMode(m_StatsService, m_XPByRank),
+        };
+        SetGameMode(m_GameModes[0]);
     }
 
     private void OnAwake()
@@ -207,7 +212,7 @@ public class GameService : IGameService
         switch (_GamePhase)
         {
             case GamePhase.MAIN_MENU:
-                SetGameMode(new ClassicGameMode(m_StatsService, m_XPByRank));
+                SetGameMode(m_GameModes[0]);
                 Randomize();
                 SetColor(ComputeCurrentPlayerColor(true, 0));
                 break;

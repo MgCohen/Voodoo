@@ -33,7 +33,8 @@ public class ClassicGameMode : IGameMode
         else if (_PlayerRank >= 2)   rankingScore = 0;
 
         m_StatsService.AddGameResult(rankingScore);
-        m_StatsService.SetLastXP(m_XPByRank[_PlayerRank]);
+        int xpIndex = Mathf.Min(_PlayerRank, m_XPByRank.Count - 1);
+        m_StatsService.SetLastXP(m_XPByRank[xpIndex]);
     }
 
     public void OnPostEndGame()

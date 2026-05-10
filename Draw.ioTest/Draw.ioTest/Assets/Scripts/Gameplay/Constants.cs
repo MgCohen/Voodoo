@@ -33,7 +33,6 @@ public static class Constants
     public const string         c_CohortSixPlayers = "SixPlayers";
 
     // Gameplay
-    public static int           s_PlayerCount = 8;
     public const string         c_DefaultPlayerName = "You";
     public const int            c_MaxLevel = 100;
     public const float          c_CubeOffsetDistance = 1.0f;
