@@ -66,6 +66,7 @@ public abstract class Player : MappedObject, IDrawLine
 	private int 				m_GrowStep = 0;
 	private float 				m_Size = c_MinSize;
 	protected float				m_Speed = c_MinSpeed;
+	private float				m_SpeedFactor = 1f;
     public bool                 m_Invincible { get; private set; }
     private float               m_SizeSecondaryBrush;
     protected int               m_Level;
@@ -470,7 +471,7 @@ public abstract class Player : MappedObject, IDrawLine
 
 	protected float GetSpeed()
 	{
-		return Mathf.Clamp(m_Speed, c_MinSpeed, c_MaxSpeed);
+		return Mathf.Clamp(m_Speed * m_SpeedFactor, c_MinSpeed, c_MaxSpeed);
 	}
 
 	public float GetSize()
@@ -496,6 +497,9 @@ public abstract class Player : MappedObject, IDrawLine
 		    case EBonus.SIZE_UP:
                 m_SizeFactor = 1.0f;
 			    break;
+		    case EBonus.SPEED_UP:
+		        m_SpeedFactor = 1.0f;
+		        break;
 		}
 	}
 
@@ -505,6 +509,14 @@ public abstract class Player : MappedObject, IDrawLine
 		if (m_SizePowerUpCoroutine != null)
 			StopCoroutine(m_SizePowerUpCoroutine);
 		m_SizePowerUpCoroutine = StartCoroutine (BonusCoroutine(EBonus.SIZE_UP, _Duration));
+	}
+
+	public virtual void AddSpeedBoost(float _Factor, float _Duration)
+	{
+		m_SpeedFactor = _Factor;
+		if (m_SpeedPowerUpCoroutine != null)
+			StopCoroutine(m_SpeedPowerUpCoroutine);
+		m_SpeedPowerUpCoroutine = StartCoroutine (BonusCoroutine(EBonus.SPEED_UP, _Duration));
 	}
 
 	#endregion   
