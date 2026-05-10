@@ -134,7 +134,7 @@ public class EndView : View<EndView>
 
         for (int i = 0; i < m_PlayerSlots.Count; ++i)
         {
-            m_PlayerSlots[i].SetActive(i < Constants.s_PlayerCount);
+            m_PlayerSlots[i].SetActive(i < m_GameService.PlayerCount);
         }
     }
 

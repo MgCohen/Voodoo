@@ -4,7 +4,9 @@ using UnityEngine;
 
 public interface IStatsService
 {
-    public float GetLevel();
+    void SetActiveStatsPrefix(string _Prefix);
+    float GetLevel();
+    int GetBestScore();
     void TryToSetBestScore(int playerScore);
     void AddGameResult(int rankingScore);
     void SetLastXP(int xp);

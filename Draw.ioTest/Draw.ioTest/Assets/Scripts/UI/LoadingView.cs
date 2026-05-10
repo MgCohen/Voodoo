@@ -39,7 +39,7 @@ public class LoadingView : View<LoadingView> {
         m_TipObj.text = m_TipsText[Random.Range(0, m_TipsText.Count)];
 
         m_LoadingFinish = false;
-		for (int i = 0; i < Constants.s_PlayerCount; i++)
+		for (int i = 0; i < GameService.PlayerCount; i++)
         {
             GameObject obj = Instantiate(m_PrefabPeople, Vector3.zero, Quaternion.identity);
             obj.transform.SetParent(m_GridParent);
@@ -102,8 +102,8 @@ public class LoadingView : View<LoadingView> {
 
     private IEnumerator LoadingPeopleCoroutine()
     {
-		int playersLeftID = Random.Range(1, (Constants.s_PlayerCount / 2) + 1);
-		m_WaitingLabel.text = "WAITING " + (Constants.s_PlayerCount - playersLeftID).ToString() + " PLAYERS"; 
+		int playersLeftID = Random.Range(1, (GameService.PlayerCount / 2) + 1);
+		m_WaitingLabel.text = "WAITING " + (GameService.PlayerCount - playersLeftID).ToString() + " PLAYERS"; 
 
         for (int i = 0; i < playersLeftID; i++)
         {
@@ -115,11 +115,11 @@ public class LoadingView : View<LoadingView> {
 
         yield return new WaitForSeconds(1);
 
-		while (playersLeftID < Constants.s_PlayerCount)
+		while (playersLeftID < GameService.PlayerCount)
         {
             ActivatePeopleUI(playersLeftID++);
 
-			m_WaitingLabel.text = "WAITING " + (Constants.s_PlayerCount - playersLeftID).ToString() + " PLAYERS";
+			m_WaitingLabel.text = "WAITING " + (GameService.PlayerCount - playersLeftID).ToString() + " PLAYERS";
             yield return new WaitForSeconds(m_DelayBetweenPlayersConnection + Random.Range(-m_DelayBetweenPlayersConnection, m_DelayBetweenPlayersConnection / 2));
         }
         m_WaitingObj.DOFade(0, 0.1f).OnComplete(() =>

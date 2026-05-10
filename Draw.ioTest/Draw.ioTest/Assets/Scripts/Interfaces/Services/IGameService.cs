@@ -23,4 +23,8 @@ public interface IGameService
     void SkipRV();
     void TryRevive();
     Player GetBestPlayer();
+    void SetGameMode(IGameMode _Mode);
+    int PlayerCount { get; }
+    float GetAIDifficultyMin();
+    float GetAIDifficultyMax();
 }

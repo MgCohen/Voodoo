@@ -19,9 +19,6 @@ public class GameService : IGameService
     private const float c_PopPointTeamPadding = 7.5f;
     private const float c_PopPointPadding = 15.0f;
     private const float c_PowerUpPadding = 13.0f;
-    private const float c_MinPowerUpRate = 1f;
-    private const float c_MaxPowerUpRate = 2.5f;
-    private const float c_BrushRate = 16f;
 
     public event Action<GamePhase>  onGamePhaseChanged;
     public event Action onScoresCalculated;
@@ -51,6 +48,17 @@ public class GameService : IGameService
 
     public bool m_AlreadyRevive = false;
 
+    private IGameMode m_CurrentGameMode;
+    public int PlayerCount => m_CurrentGameMode.PlayerCount;
+    public float GetAIDifficultyMin() => m_CurrentGameMode.AIDifficultyMin;
+    public float GetAIDifficultyMax() => m_CurrentGameMode.AIDifficultyMax;
+
+    public void SetGameMode(IGameMode _Mode)
+    {
+        m_CurrentGameMode = _Mode;
+        m_StatsService.SetActiveStatsPrefix(_Mode.StatsKeyPrefix);
+    }
+
     // Cache
     private IStatsService m_StatsService;
     private ProgressionView m_ProgressionView;
@@ -75,7 +83,6 @@ public class GameService : IGameService
     public List<SkinData> m_Skins { get; set; }
     private List<Color> m_Colors;
     private List<Vector3> m_PopPoints;
-    private List<PowerUpData> m_PowerUps;
     private PlayerNameData m_PlayerNameData;
     private List<GameObject> m_Objects; // Powerups and other map objects
     private List<Player> m_OrderedPlayers;
@@ -130,7 +137,7 @@ public class GameService : IGameService
 
         m_PlayerNameData = Resources.Load<PlayerNameData>("PlayerNames");
 
-        m_PowerUps = new List<PowerUpData>(Resources.LoadAll<PowerUpData>("PowerUps"));
+        SetGameMode(new ClassicGameMode(m_StatsService, m_XPByRank));
     }
 
     private void OnAwake()
@@ -200,6 +207,7 @@ public class GameService : IGameService
         switch (_GamePhase)
         {
             case GamePhase.MAIN_MENU:
+                SetGameMode(new ClassicGameMode(m_StatsService, m_XPByRank));
                 Randomize();
                 SetColor(ComputeCurrentPlayerColor(true, 0));
                 break;
@@ -207,7 +215,7 @@ public class GameService : IGameService
             case GamePhase.LOADING:
                 m_LastBrushTime = Time.time;
                 m_LastPowerUpTime = Time.time;
-                m_PowerUpRate = Random.Range(c_MinPowerUpRate, c_MaxPowerUpRate);
+                m_PowerUpRate = Random.Range(m_CurrentGameMode.MinPowerUpRate, m_CurrentGameMode.MaxPowerUpRate);
                 m_Level = m_StatsService.GetLevel();
                 PopPlayers();
 
@@ -225,21 +233,10 @@ public class GameService : IGameService
 
             case GamePhase.END:
                 int playerScore = Mathf.RoundToInt(m_Players[0].percent * 100.0f);
-                m_StatsService.TryToSetBestScore(playerScore);
-
-                int rankingScore = -1; // Difficulty down by default
                 int playerRank = m_BattleRoyaleService.GetHumanPlayer().m_Rank;
-
-                if (playerRank == 0) // Best, then increase difficulty
-                    rankingScore = 1;
-                else if (playerRank >= 2) // Second or third, then stay at same difficulty
-                    rankingScore = 0;
-
-                m_StatsService.AddGameResult(rankingScore);
-                int xp = m_XPByRank[playerRank];
-                m_StatsService.SetLastXP(xp);
+                m_CurrentGameMode.OnPreEndGame(playerRank, playerScore);
                 PreEndView.Instance.LaunchPreEnd();
-                m_StatsService.GainXP();
+                m_CurrentGameMode.OnPostEndGame();
                 break;
         }
 
@@ -268,9 +265,9 @@ public class GameService : IGameService
     private void PopPlayers()
     {
         bool humanSpawned = false;
-        m_Players = new List<Player>(Constants.s_PlayerCount);
+        m_Players = new List<Player>(m_CurrentGameMode.PlayerCount);
 
-        for (int i = 0; i < Constants.s_PlayerCount; ++i)
+        for (int i = 0; i < m_CurrentGameMode.PlayerCount; ++i)
         {
             Player newPlayer = PopPlayer(humanSpawned == false, m_PopPoints[i], i);
 
@@ -368,14 +365,15 @@ public class GameService : IGameService
 
         if (Time.time - m_LastPowerUpTime > m_PowerUpRate)
         {
-            m_PowerUpRate = Random.Range(c_MinPowerUpRate, c_MaxPowerUpRate);
+            m_PowerUpRate = Random.Range(m_CurrentGameMode.MinPowerUpRate, m_CurrentGameMode.MaxPowerUpRate);
             m_LastPowerUpTime = Time.time;
 
-            PowerUpData powerUpData = m_PowerUps[Random.Range(0, m_PowerUps.Count)];
+            var ups = m_CurrentGameMode.PowerUps;
+            PowerUpData powerUpData = ups[Random.Range(0, ups.Count)];
             PopObjectRandomly(powerUpData.m_Prefab);
         }
 
-        if (Time.time - m_LastBrushTime > c_BrushRate)
+        if (Time.time - m_LastBrushTime > m_CurrentGameMode.BrushSpawnRate)
         {
             m_LastBrushTime = Time.time;
             PopObjectRandomly(m_BrushPowerUpPrefab.gameObject);
@@ -411,7 +409,8 @@ public class GameService : IGameService
 
     public GameObject PickPowerUp()
     {
-        return m_PowerUps[Random.Range(0, m_PowerUps.Count)].m_Prefab;
+        var ups = m_CurrentGameMode.PowerUps;
+        return ups[Random.Range(0, ups.Count)].m_Prefab;
     }
 
     public Player GetBestPlayer()

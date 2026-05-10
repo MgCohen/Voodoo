@@ -21,16 +21,22 @@ public class StatsService : IStatsService
     }
 
     private StatsConfig m_StatsConfig;
-    
+    private string m_ActivePrefix = "";
+
     [Inject]
     public void Construct(StatsConfig statsConfig)
     {
 	    m_StatsConfig = statsConfig;
     }
 
+    public void SetActiveStatsPrefix(string _Prefix)
+    {
+        m_ActivePrefix = _Prefix ?? "";
+    }
+
     private int GetGameResult(int _Index)
 	{
-		string key = Constants.c_GameResultSave + "_" + _Index.ToString ();
+		string key = m_ActivePrefix + Constants.c_GameResultSave + "_" + _Index.ToString ();
 
 		if (PlayerPrefs.HasKey(key))
 			return PlayerPrefs.GetInt(key);
@@ -43,12 +49,12 @@ public class StatsService : IStatsService
 		// Move results
 		for (int i = Constants.c_SavedGameCount - 1; i >= 0; --i)
 		{
-			string key = Constants.c_GameResultSave + "_" + i.ToString ();
+			string key = m_ActivePrefix + Constants.c_GameResultSave + "_" + i.ToString ();
 			PlayerPrefs.SetInt (key, GetGameResult (i - 1));
 		}
 
 		// Set new result
-		PlayerPrefs.SetInt (Constants.c_GameResultSave + "_0", _WinScore);
+		PlayerPrefs.SetInt (m_ActivePrefix + Constants.c_GameResultSave + "_0", _WinScore);
 	}
 
 	public float GetLevel()
@@ -67,14 +73,15 @@ public class StatsService : IStatsService
 		int score = GetBestScore ();
 		if (score < _Score)
 		{
-			PlayerPrefs.SetInt(Constants.c_BestScoreSave, _Score);
+			PlayerPrefs.SetInt(m_ActivePrefix + Constants.c_BestScoreSave, _Score);
 		}
 	}
 
 	public int GetBestScore()
 	{
-		if (PlayerPrefs.HasKey(Constants.c_BestScoreSave))
-			return PlayerPrefs.GetInt(Constants.c_BestScoreSave);
+		string key = m_ActivePrefix + Constants.c_BestScoreSave;
+		if (PlayerPrefs.HasKey(key))
+			return PlayerPrefs.GetInt(key);
 		else
 			return 0;
 	}
@@ -96,39 +103,36 @@ public class StatsService : IStatsService
 
     public void GainXP()
     {
-        
         int _XP  = m_LastGain;
 
+        int xp = _XP + GetXP();
 
-            int xp = _XP + GetXP();
-
-            while (xp >= XPToNextLevel())
-            {
-                xp -= XPToNextLevel();
-                LevelUp();
-            }
-            PlayerPrefs.SetInt(Constants.c_PlayerXPSave, xp);
-
+        while (xp >= XPToNextLevel())
+        {
+            xp -= XPToNextLevel();
+            LevelUp();
+        }
+        PlayerPrefs.SetInt(m_ActivePrefix + Constants.c_PlayerXPSave, xp);
 	}
-    
+
 	public int GetXP()
 	{
-		return (PlayerPrefs.GetInt(Constants.c_PlayerXPSave, 0));
+		return (PlayerPrefs.GetInt(m_ActivePrefix + Constants.c_PlayerXPSave, 0));
 	}
 
 	public int GetPlayerLevel()
 	{
-		return (PlayerPrefs.GetInt(Constants.c_PlayerLevelSave, 1));
+		return (PlayerPrefs.GetInt(m_ActivePrefix + Constants.c_PlayerLevelSave, 1));
 	}
 
     void LevelUp()
 	{
-		PlayerPrefs.SetInt(Constants.c_PlayerLevelSave, GetPlayerLevel() + 1);
+		PlayerPrefs.SetInt(m_ActivePrefix + Constants.c_PlayerLevelSave, GetPlayerLevel() + 1);
 	}
 
     void LevelDown()
     {
-        PlayerPrefs.SetInt(Constants.c_PlayerLevelSave, GetPlayerLevel() - 1);
+        PlayerPrefs.SetInt(m_ActivePrefix + Constants.c_PlayerLevelSave, GetPlayerLevel() - 1);
     }
 
 	public int XPToNextLevel(int _LevelStart = -1)
