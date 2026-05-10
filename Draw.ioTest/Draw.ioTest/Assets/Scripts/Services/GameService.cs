@@ -18,7 +18,6 @@ public class GameService : IGameService
 {
     private const float c_PopPointTeamPadding = 7.5f;
     private const float c_PopPointPadding = 15.0f;
-    private const float c_PowerUpPadding = 13.0f;
 
     public event Action<GamePhase>  onGamePhaseChanged;
     public event Action onScoresCalculated;
@@ -53,10 +52,10 @@ public class GameService : IGameService
     public float GetAIDifficultyMin() => m_CurrentGameMode.AIDifficultyMin;
     public float GetAIDifficultyMax() => m_CurrentGameMode.AIDifficultyMax;
 
-    public void SetGameMode(IGameMode _Mode)
+    private void SetGameMode(IGameMode _Mode)
     {
         m_CurrentGameMode = _Mode;
-        m_StatsService.SetActiveGameMode(_Mode);
+        m_StatsService.SetActivePrefix(_Mode.StatsKeyPrefix);
     }
 
     public void StartBoosterMode()
@@ -410,14 +409,14 @@ public class GameService : IGameService
 
     public void PopObjectRandomly(GameObject _Prefab)
     {
-        m_PosBuffer.Set(Random.Range(-m_TerrainService.WorldHalfWidth + c_PowerUpPadding, m_TerrainService.WorldHalfWidth - c_PowerUpPadding),
+        m_PosBuffer.Set(Random.Range(-m_TerrainService.WorldHalfWidth + Constants.c_PowerUpPadding, m_TerrainService.WorldHalfWidth - Constants.c_PowerUpPadding),
                              0.0f,
-                        Random.Range(-m_TerrainService.WorldHalfHeight + c_PowerUpPadding, m_TerrainService.WorldHalfHeight - c_PowerUpPadding));
+                        Random.Range(-m_TerrainService.WorldHalfHeight + Constants.c_PowerUpPadding, m_TerrainService.WorldHalfHeight - Constants.c_PowerUpPadding));
 
-        if (Mathf.Abs(m_PosBuffer.x) < c_PowerUpPadding)
-            m_PosBuffer.x += c_PowerUpPadding * Mathf.Sign(m_PosBuffer.x);
-        if (Mathf.Abs(m_PosBuffer.z) < c_PowerUpPadding)
-            m_PosBuffer.z += c_PowerUpPadding * Mathf.Sign(m_PosBuffer.z);
+        if (Mathf.Abs(m_PosBuffer.x) < Constants.c_PowerUpPadding)
+            m_PosBuffer.x += Constants.c_PowerUpPadding * Mathf.Sign(m_PosBuffer.x);
+        if (Mathf.Abs(m_PosBuffer.z) < Constants.c_PowerUpPadding)
+            m_PosBuffer.z += Constants.c_PowerUpPadding * Mathf.Sign(m_PosBuffer.z);
 
         m_TerrainService.ClampPosition(ref m_PosBuffer, Constants.c_SpawnBorderOffset);
         m_Objects.Add(m_Container.InstantiatePrefab(_Prefab, m_PosBuffer, Quaternion.identity, null));

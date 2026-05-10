@@ -17,7 +17,6 @@ public class ClassicGameMode : IGameMode
     public string StatsKeyPrefix => "";
 
     public List<PowerUpData> PowerUps => m_PowerUps;
-    public List<int> XPPerLevel => m_Config.m_XPPerLevel;
     public float MinPowerUpRate => m_Config.m_MinPowerUpRate;
     public float MaxPowerUpRate => m_Config.m_MaxPowerUpRate;
     public float BrushSpawnRate => m_Config.m_BrushSpawnRate;

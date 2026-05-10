@@ -38,6 +38,7 @@ public static class Constants
     public const float          c_CubeOffsetDistance = 1.0f;
     public const float          c_GenDistance = 50.0f;
     public const float          c_SpawnBorderOffset = 10.0f;
+    public const float          c_PowerUpPadding = 13.0f;
 	public const float			c_MaxTime = 130.0f;
 	public const float          c_PlayerDeathDuration = 2f;
 	public const float          c_PowerUpPreWarm = 0.5f;

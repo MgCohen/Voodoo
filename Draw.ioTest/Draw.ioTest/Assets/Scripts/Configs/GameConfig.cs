@@ -15,7 +15,6 @@ public class GameConfig : ScriptableObject
 
     [Header("Mode")]
     public List<int> m_XPByRank;
-    public List<int> m_XPPerLevel;
     public float m_MinPowerUpRate = 1f;
     public float m_MaxPowerUpRate = 2.5f;
     public float m_BrushSpawnRate = 16f;

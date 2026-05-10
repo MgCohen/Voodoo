@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IStatsService
 {
-    void SetActiveGameMode(IGameMode _Mode);
+    void SetActivePrefix(string _Prefix);
     float GetLevel();
     int GetBestScore();
     void TryToSetBestScore(int playerScore);

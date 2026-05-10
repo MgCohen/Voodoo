@@ -6,8 +6,6 @@ public sealed class PowerUp_ColorBomb : PowerUp
 	public float m_Radius = 8f;
 	public float m_FillDuration = 0.3f;
 
-	private const float c_Padding = 13f;
-
 	private ITerrainService m_TerrainService;
 
 	[Inject]
@@ -33,9 +31,9 @@ public sealed class PowerUp_ColorBomb : PowerUp
 		float halfW = m_TerrainService.WorldHalfWidth;
 		float halfH = m_TerrainService.WorldHalfHeight;
 		return new Vector3(
-			Random.Range(-halfW + c_Padding, halfW - c_Padding),
+			Random.Range(-halfW + Constants.c_PowerUpPadding, halfW - Constants.c_PowerUpPadding),
 			0f,
-			Random.Range(-halfH + c_Padding, halfH - c_Padding));
+			Random.Range(-halfH + Constants.c_PowerUpPadding, halfH - Constants.c_PowerUpPadding));
 	}
 
 	private void SelfDestroy()
