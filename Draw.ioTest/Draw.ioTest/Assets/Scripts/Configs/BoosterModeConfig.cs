@@ -7,6 +7,7 @@ public class BoosterModeConfig : ScriptableObject
     public List<BoosterLevelData> m_AuthoredLevels;
     public BoosterLevelData m_FallbackTemplate;
     public List<int> m_XPByRank;
+    public List<int> m_XPPerLevel;
 
     public BoosterLevelData GetLevel(int _OneIndexedLevel)
     {

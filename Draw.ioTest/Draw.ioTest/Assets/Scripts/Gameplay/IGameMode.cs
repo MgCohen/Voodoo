@@ -5,6 +5,7 @@ public interface IGameMode
     string StatsKeyPrefix { get; }
 
     List<PowerUpData> PowerUps { get; }
+    List<int> XPPerLevel { get; }
     float MinPowerUpRate { get; }
     float MaxPowerUpRate { get; }
     float BrushSpawnRate { get; }

@@ -11,6 +11,7 @@ public class BoosterLevelData : ScriptableObject
     public float m_BrushSpawnRate = 16f;
 
     [Header("Match")]
+    [Range(1, 8)]
     public int m_PlayerCount = 8;
 
     [Header("AI")]

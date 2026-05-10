@@ -18,6 +18,7 @@ public class BoosterGameMode : IGameMode
     public string StatsKeyPrefix => "Booster_";
 
     public List<PowerUpData> PowerUps => CurrentLevel.m_AvailablePowerUps;
+    public List<int> XPPerLevel => m_Config.m_XPPerLevel;
     public float MinPowerUpRate => CurrentLevel.m_MinPowerUpRate;
     public float MaxPowerUpRate => CurrentLevel.m_MaxPowerUpRate;
     public float BrushSpawnRate => CurrentLevel.m_BrushSpawnRate;

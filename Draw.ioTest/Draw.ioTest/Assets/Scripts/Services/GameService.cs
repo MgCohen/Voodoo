@@ -44,7 +44,6 @@ public class GameService : IGameService
 
     public GamePhase currentPhase { get; private set; }
     public List<Player> m_Players { get; set; }
-    public List<int> m_XPByRank => m_GameConfig.m_XPByRank;
 
     public bool m_AlreadyRevive = false;
 
@@ -57,13 +56,25 @@ public class GameService : IGameService
     public void SetGameMode(IGameMode _Mode)
     {
         m_CurrentGameMode = _Mode;
-        m_StatsService.SetActiveStatsPrefix(_Mode.StatsKeyPrefix);
+        m_StatsService.SetActiveGameMode(_Mode);
     }
 
     public void StartBoosterMode()
     {
-        SetGameMode(m_GameModes[1]);
+        SetGameMode<BoosterGameMode>();
         ChangePhase(GamePhase.LOADING);
+    }
+
+    private void SetGameMode<T>() where T : class, IGameMode
+    {
+        for (int i = 0; i < m_GameModes.Count; ++i)
+        {
+            if (m_GameModes[i] is T)
+            {
+                SetGameMode(m_GameModes[i]);
+                return;
+            }
+        }
     }
 
     // Cache
@@ -149,10 +160,10 @@ public class GameService : IGameService
 
         m_GameModes = new List<IGameMode>
         {
-            new ClassicGameMode(m_StatsService, m_XPByRank),
+            new ClassicGameMode(m_StatsService, m_GameConfig),
             new BoosterGameMode(m_StatsService, m_BoosterModeConfig),
         };
-        SetGameMode(m_GameModes[0]);
+        SetGameMode<ClassicGameMode>();
     }
 
     private void OnAwake()
@@ -222,7 +233,7 @@ public class GameService : IGameService
         switch (_GamePhase)
         {
             case GamePhase.MAIN_MENU:
-                SetGameMode(m_GameModes[0]);
+                SetGameMode<ClassicGameMode>();
                 Randomize();
                 SetColor(ComputeCurrentPlayerColor(true, 0));
                 break;
