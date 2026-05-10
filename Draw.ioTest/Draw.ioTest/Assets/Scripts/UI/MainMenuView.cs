@@ -45,6 +45,12 @@ public class MainMenuView : View<MainMenuView>
             GameService.ChangePhase(GamePhase.LOADING);
     }
 
+    public void OnBoosterButton()
+    {
+        if (GameService.currentPhase == GamePhase.MAIN_MENU)
+            GameService.StartBoosterMode();
+    }
+
     protected override void OnGamePhaseChanged(GamePhase _GamePhase)
     {
         base.OnGamePhaseChanged(_GamePhase);

@@ -27,4 +27,5 @@ public interface IGameService
     int PlayerCount { get; }
     float GetAIDifficultyMin();
     float GetAIDifficultyMax();
+    void StartBoosterMode();
 }

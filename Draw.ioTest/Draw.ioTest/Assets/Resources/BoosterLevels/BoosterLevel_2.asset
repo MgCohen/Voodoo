@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b41e8c964adfc34fa9c4d2e0ef7121b, type: 3}
+  m_Name: BoosterLevel_2
+  m_EditorClassIdentifier: 
+  m_AvailablePowerUps:
+  - {fileID: 11400000, guid: 707909f05d8274438a62b7a0fec4fa9b, type: 2}
+  - {fileID: 11400000, guid: d0b76c6fa360548088faf3b80e72a6d7, type: 2}
+  m_MinPowerUpRate: 0.9
+  m_MaxPowerUpRate: 2.3
+  m_BrushSpawnRate: 15
+  m_PlayerCount: 8
+  m_AIDifficultyMin: 0.15
+  m_AIDifficultyMax: 0.70000005

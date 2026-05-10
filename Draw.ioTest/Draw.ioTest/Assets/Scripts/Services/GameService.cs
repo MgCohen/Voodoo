@@ -60,6 +60,12 @@ public class GameService : IGameService
         m_StatsService.SetActiveStatsPrefix(_Mode.StatsKeyPrefix);
     }
 
+    public void StartBoosterMode()
+    {
+        SetGameMode(m_GameModes[1]);
+        ChangePhase(GamePhase.LOADING);
+    }
+
     // Cache
     private IStatsService m_StatsService;
     private ProgressionView m_ProgressionView;
@@ -90,14 +96,17 @@ public class GameService : IGameService
     private Transform m_HumanSpotlight;
 
     private GameConfig m_GameConfig;
+    private BoosterModeConfig m_BoosterModeConfig;
     private DiContainer m_Container;
     private ISceneEventsService m_SceneEventsService;
     
     [Inject]
-    public void Construct(GameConfig gameConfig, IStatsService statsService, IBattleRoyaleService battleRoyaleService,
-        ITerrainService terrainService, DiContainer container, ISceneEventsService sceneEventsService)
+    public void Construct(GameConfig gameConfig, BoosterModeConfig boosterModeConfig, IStatsService statsService,
+        IBattleRoyaleService battleRoyaleService, ITerrainService terrainService, DiContainer container,
+        ISceneEventsService sceneEventsService)
     {
         m_GameConfig = gameConfig;
+        m_BoosterModeConfig = boosterModeConfig;
         m_StatsService = statsService;
         m_BattleRoyaleService = battleRoyaleService;
         m_TerrainService = terrainService;
@@ -141,6 +150,7 @@ public class GameService : IGameService
         m_GameModes = new List<IGameMode>
         {
             new ClassicGameMode(m_StatsService, m_XPByRank),
+            new BoosterGameMode(m_StatsService, m_BoosterModeConfig),
         };
         SetGameMode(m_GameModes[0]);
     }
