@@ -20,3 +20,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 92c9b2d736eb3044f8fc665d15e24f8e, type: 2}
   - {fileID: 11400000, guid: afc3e91b89851e6448fd7c293d7e7003, type: 2}
   m_FallbackLevel: {fileID: 11400000, guid: 0cba9542035f6ff49891ec9919eafc0e, type: 2}
+  m_BaseXPThreshold: 100
+  m_XPIncrementPerLevel: 50

@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b41e8c964adfc34fa9c4d2e0ef7121b, type: 3}
   m_Name: BoosterLevel_3
   m_EditorClassIdentifier:
-  m_XPToNextLevel: 100
   m_Match:
     m_AvailablePowerUps:
     - {fileID: 11400000, guid: 707909f05d8274438a62b7a0fec4fa9b, type: 2}

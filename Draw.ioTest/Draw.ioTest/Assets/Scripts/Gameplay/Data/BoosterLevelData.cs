@@ -4,5 +4,4 @@ using UnityEngine;
 public class BoosterLevelData : ScriptableObject
 {
     public MatchSettings m_Match;
-    public int m_XPToNextLevel = 100;
 }
