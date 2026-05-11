@@ -4,10 +4,10 @@ using UnityEngine;
 public class ClassicGameMode : IGameMode
 {
     private readonly IStatsService m_StatsService;
-    private readonly GameConfig m_Config;
+    private readonly ClassicModeConfig m_Config;
     private readonly List<PowerUpData> m_PowerUps;
 
-    public ClassicGameMode(IStatsService _StatsService, GameConfig _Config)
+    public ClassicGameMode(IStatsService _StatsService, ClassicModeConfig _Config)
     {
         m_StatsService = _StatsService;
         m_Config = _Config;

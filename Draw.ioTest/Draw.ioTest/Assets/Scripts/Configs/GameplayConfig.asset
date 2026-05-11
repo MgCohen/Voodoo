@@ -9,10 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c725805b8e491445f90a3cfb8bab90dc, type: 3}
-  m_Name: GameConfig
-  m_EditorClassIdentifier: 
-  m_DebugLevel: 1
+  m_Script: {fileID: 11500000, guid: 268b51e9d1f640dfa375443a0e63917c, type: 3}
+  m_Name: GameplayConfig
+  m_EditorClassIdentifier:
   m_BrushPowerUpPrefab: {fileID: 114406100664639548, guid: 24a5c1e7971a14d4a9980eee0e182a0f,
     type: 3}
   m_HumanPlayer: {fileID: 1193150808822244, guid: 51f1d08532bfb0f4ebaffc93c89032a7,
@@ -20,9 +19,3 @@ MonoBehaviour:
   m_IAPlayer: {fileID: 1181744322032206, guid: 8bc31daf86b2a64438fdf9d3a20c7c0b, type: 3}
   m_HumanSpotlight: {fileID: 5301977967824784285, guid: d474f8182467e4237a8b2cf7ae74577b,
     type: 3}
-  m_XPByRank: 640000004b000000320000002300000019000000140000000f0000000a0000000500000001000000
-  m_XPPerLevel: 640000007d00000096000000af000000c8000000e1000000fa000000130100002c0100005e01000090010000c2010000f401000026020000580200008a020000bc020000ee020000200300005203000084030000e80300004c040000b00400001405000078050000dc05000059060000d6060000d0070000
-  m_MinPowerUpRate: 1
-  m_MaxPowerUpRate: 2.5
-  m_BrushSpawnRate: 16
-  m_PlayerCount: 8

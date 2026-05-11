@@ -35,9 +35,9 @@ public class GameService : IGameService
     private static bool m_SaveCleared = false;
 #endif
 
-    public PowerUp m_BrushPowerUpPrefab => m_GameConfig.m_BrushPowerUpPrefab;
-    public GameObject m_HumanPlayer => m_GameConfig.m_HumanPlayer;
-    public GameObject m_IAPlayer => m_GameConfig.m_IAPlayer;
+    public PowerUp m_BrushPowerUpPrefab => m_GameplayConfig.m_BrushPowerUpPrefab;
+    public GameObject m_HumanPlayer => m_GameplayConfig.m_HumanPlayer;
+    public GameObject m_IAPlayer => m_GameplayConfig.m_IAPlayer;
 
     public int m_PlayerSkinID { get; set; }
 
@@ -105,17 +105,20 @@ public class GameService : IGameService
     private List<Player> m_OrderedPlayers;
     private Transform m_HumanSpotlight;
 
-    private GameConfig m_GameConfig;
+    private GameplayConfig m_GameplayConfig;
+    private ClassicModeConfig m_ClassicModeConfig;
     private BoosterModeConfig m_BoosterModeConfig;
     private DiContainer m_Container;
     private ISceneEventsService m_SceneEventsService;
-    
+
     [Inject]
-    public void Construct(GameConfig gameConfig, BoosterModeConfig boosterModeConfig, IStatsService statsService,
+    public void Construct(GameplayConfig gameplayConfig, ClassicModeConfig classicModeConfig,
+        BoosterModeConfig boosterModeConfig, IStatsService statsService,
         IBattleRoyaleService battleRoyaleService, ITerrainService terrainService, DiContainer container,
         ISceneEventsService sceneEventsService)
     {
-        m_GameConfig = gameConfig;
+        m_GameplayConfig = gameplayConfig;
+        m_ClassicModeConfig = classicModeConfig;
         m_BoosterModeConfig = boosterModeConfig;
         m_StatsService = statsService;
         m_BattleRoyaleService = battleRoyaleService;
@@ -159,7 +162,7 @@ public class GameService : IGameService
 
         m_GameModes = new List<IGameMode>
         {
-            new ClassicGameMode(m_StatsService, m_GameConfig),
+            new ClassicGameMode(m_StatsService, m_ClassicModeConfig),
             new BoosterGameMode(m_StatsService, m_BoosterModeConfig),
         };
         SetGameMode<ClassicGameMode>();
@@ -200,7 +203,7 @@ public class GameService : IGameService
         // Cache
         m_ProgressionView = ProgressionView.Instance;
         m_MainMenuView = MainMenuView.Instance;
-        m_HumanSpotlight = GameObject.Instantiate<Transform>(m_GameConfig.m_HumanSpotlight);
+        m_HumanSpotlight = GameObject.Instantiate<Transform>(m_GameplayConfig.m_HumanSpotlight);
         m_SpotlightOffset = m_HumanSpotlight.position;
 
         // Buffers

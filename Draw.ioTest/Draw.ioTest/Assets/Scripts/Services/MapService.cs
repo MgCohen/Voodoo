@@ -18,8 +18,6 @@ public class MapService : IMapService
 	public bool							initialized { get { return m_IsInitialized; } }
 
 
-    private GameConfig m_GameConfig;
-    private DiContainer m_Container;
     private ISceneEventsService m_SceneEventsService;
     
     [Inject]

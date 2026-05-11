@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BattleRoyaleConfig: {fileID: 11400000, guid: 03a06f9140f2a4b22a28b76923fd5327,
     type: 2}
-  m_GameConfig: {fileID: 11400000, guid: 9a8feb8bbbeab4a6490254b940145576, type: 2}
+  m_GameplayConfig: {fileID: 11400000, guid: f8a27c679bb5469d9a27a78b453b5caa, type: 2}
+  m_ClassicModeConfig: {fileID: 11400000, guid: 9a8feb8bbbeab4a6490254b940145576,
+    type: 2}
   m_BoosterModeConfig: {fileID: 11400000, guid: d4924418ac16b304b8bdbc116cbaadb5,
     type: 2}
   m_RankingConfig: {fileID: 11400000, guid: bdb9bc2c305a348f0b0213df9bf0edc6, type: 2}

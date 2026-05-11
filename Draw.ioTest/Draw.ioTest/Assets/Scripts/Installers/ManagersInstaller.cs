@@ -5,7 +5,8 @@ using Zenject;
 public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
 {
     [SerializeField] private BattleRoyaleConfig m_BattleRoyaleConfig;
-    [SerializeField] private GameConfig m_GameConfig;
+    [SerializeField] private GameplayConfig m_GameplayConfig;
+    [SerializeField] private ClassicModeConfig m_ClassicModeConfig;
     [SerializeField] private BoosterModeConfig m_BoosterModeConfig;
     [SerializeField] private RankingConfig m_RankingConfig;
     [SerializeField] private StatsConfig m_StatsConfig;
@@ -32,7 +33,8 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
     private void InstallGameManager(DiContainer subContainer)
     {
         subContainer.Bind<GameService>().AsSingle();
-        subContainer.Bind<GameConfig>().FromInstance(m_GameConfig).AsSingle();
+        subContainer.Bind<GameplayConfig>().FromInstance(m_GameplayConfig).AsSingle();
+        subContainer.Bind<ClassicModeConfig>().FromInstance(m_ClassicModeConfig).AsSingle();
         subContainer.Bind<BoosterModeConfig>().FromInstance(m_BoosterModeConfig).AsSingle();
     }
 
