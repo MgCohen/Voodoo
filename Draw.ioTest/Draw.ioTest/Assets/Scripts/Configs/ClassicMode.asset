@@ -9,18 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b41e8c964adfc34fa9c4d2e0ef7121b, type: 3}
-  m_Name: BoosterLevel_4
+  m_Script: {fileID: 11500000, guid: c725805b8e491445f90a3cfb8bab90dc, type: 3}
+  m_Name: ClassicMode
   m_EditorClassIdentifier:
+  m_XPRewardByFinishRank: 640000004b000000320000002300000019000000140000000f0000000a0000000500000001000000
   m_Match:
     m_AvailablePowerUps:
     - {fileID: 11400000, guid: 707909f05d8274438a62b7a0fec4fa9b, type: 2}
     - {fileID: 11400000, guid: d0b76c6fa360548088faf3b80e72a6d7, type: 2}
-    - {fileID: 11400000, guid: f6b8d2c75ea094c14c7f605b8c9daeb6, type: 2}
-    - {fileID: 11400000, guid: 07c9e3d86fb1a5d25d8071ac9daebfc7, type: 2}
-    m_MinPowerUpRate: 0.7
-    m_MaxPowerUpRate: 1.9
-    m_BrushSpawnRate: 13
+    m_MinPowerUpRate: 1
+    m_MaxPowerUpRate: 2.5
+    m_BrushSpawnRate: 16
     m_PlayerCount: 8
-    m_AIDifficultyMin: 0.45000002
-    m_AIDifficultyMax: 0.90000004
+    m_AIDifficultyMin: 0
+    m_AIDifficultyMax: 1

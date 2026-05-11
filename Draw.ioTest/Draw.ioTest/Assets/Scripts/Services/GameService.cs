@@ -46,34 +46,23 @@ public class GameService : IGameService
 
     public bool m_AlreadyRevive = false;
 
-    private IGameMode m_CurrentGameMode;
-    private List<IGameMode> m_GameModes;
-    public int PlayerCount => m_CurrentGameMode.PlayerCount;
-    public float GetAIDifficultyMin() => m_CurrentGameMode.AIDifficultyMin;
-    public float GetAIDifficultyMax() => m_CurrentGameMode.AIDifficultyMax;
+    private GameMode m_CurrentMode;
+    private MatchSettings m_CurrentMatch;
+    public int PlayerCount => m_CurrentMatch.m_PlayerCount;
+    public float GetAIDifficultyMin() => m_CurrentMatch.m_AIDifficultyMin;
+    public float GetAIDifficultyMax() => m_CurrentMatch.m_AIDifficultyMax;
 
-    private void SetGameMode(IGameMode _Mode)
+    private void SetGameMode(GameMode _Mode)
     {
-        m_CurrentGameMode = _Mode;
+        m_CurrentMode = _Mode;
         m_StatsService.SetActivePrefix(_Mode.StatsKeyPrefix);
+        m_CurrentMatch = _Mode.GetCurrentMatch(m_StatsService);
     }
 
     public void StartBoosterMode()
     {
-        SetGameMode<BoosterGameMode>();
+        SetGameMode(m_BoosterMode);
         ChangePhase(GamePhase.LOADING);
-    }
-
-    private void SetGameMode<T>() where T : class, IGameMode
-    {
-        for (int i = 0; i < m_GameModes.Count; ++i)
-        {
-            if (m_GameModes[i] is T)
-            {
-                SetGameMode(m_GameModes[i]);
-                return;
-            }
-        }
     }
 
     // Cache
@@ -106,20 +95,20 @@ public class GameService : IGameService
     private Transform m_HumanSpotlight;
 
     private GameplayConfig m_GameplayConfig;
-    private ClassicModeConfig m_ClassicModeConfig;
-    private BoosterModeConfig m_BoosterModeConfig;
+    private ClassicMode m_ClassicMode;
+    private BoosterMode m_BoosterMode;
     private DiContainer m_Container;
     private ISceneEventsService m_SceneEventsService;
 
     [Inject]
-    public void Construct(GameplayConfig gameplayConfig, ClassicModeConfig classicModeConfig,
-        BoosterModeConfig boosterModeConfig, IStatsService statsService,
+    public void Construct(GameplayConfig gameplayConfig, ClassicMode classicMode,
+        BoosterMode boosterMode, IStatsService statsService,
         IBattleRoyaleService battleRoyaleService, ITerrainService terrainService, DiContainer container,
         ISceneEventsService sceneEventsService)
     {
         m_GameplayConfig = gameplayConfig;
-        m_ClassicModeConfig = classicModeConfig;
-        m_BoosterModeConfig = boosterModeConfig;
+        m_ClassicMode = classicMode;
+        m_BoosterMode = boosterMode;
         m_StatsService = statsService;
         m_BattleRoyaleService = battleRoyaleService;
         m_TerrainService = terrainService;
@@ -160,12 +149,7 @@ public class GameService : IGameService
 
         m_PlayerNameData = Resources.Load<PlayerNameData>("PlayerNames");
 
-        m_GameModes = new List<IGameMode>
-        {
-            new ClassicGameMode(m_StatsService, m_ClassicModeConfig),
-            new BoosterGameMode(m_StatsService, m_BoosterModeConfig),
-        };
-        SetGameMode<ClassicGameMode>();
+        SetGameMode(m_ClassicMode);
     }
 
     private void OnAwake()
@@ -235,15 +219,16 @@ public class GameService : IGameService
         switch (_GamePhase)
         {
             case GamePhase.MAIN_MENU:
-                SetGameMode<ClassicGameMode>();
+                SetGameMode(m_ClassicMode);
                 Randomize();
                 SetColor(ComputeCurrentPlayerColor(true, 0));
                 break;
 
             case GamePhase.LOADING:
+                m_CurrentMatch = m_CurrentMode.GetCurrentMatch(m_StatsService);
                 m_LastBrushTime = Time.time;
                 m_LastPowerUpTime = Time.time;
-                m_PowerUpRate = Random.Range(m_CurrentGameMode.MinPowerUpRate, m_CurrentGameMode.MaxPowerUpRate);
+                m_PowerUpRate = Random.Range(m_CurrentMatch.m_MinPowerUpRate, m_CurrentMatch.m_MaxPowerUpRate);
                 m_Level = m_StatsService.GetLevel();
                 PopPlayers();
 
@@ -262,9 +247,9 @@ public class GameService : IGameService
             case GamePhase.END:
                 int playerScore = Mathf.RoundToInt(m_Players[0].percent * 100.0f);
                 int playerRank = m_BattleRoyaleService.GetHumanPlayer().m_Rank;
-                m_CurrentGameMode.OnPreEndGame(playerRank, playerScore);
+                m_CurrentMode.OnPreEndGame(m_StatsService, playerRank, playerScore);
                 PreEndView.Instance.LaunchPreEnd();
-                m_CurrentGameMode.OnPostEndGame();
+                m_CurrentMode.OnPostEndGame(m_StatsService);
                 break;
         }
 
@@ -293,9 +278,9 @@ public class GameService : IGameService
     private void PopPlayers()
     {
         bool humanSpawned = false;
-        m_Players = new List<Player>(m_CurrentGameMode.PlayerCount);
+        m_Players = new List<Player>(m_CurrentMatch.m_PlayerCount);
 
-        for (int i = 0; i < m_CurrentGameMode.PlayerCount; ++i)
+        for (int i = 0; i < m_CurrentMatch.m_PlayerCount; ++i)
         {
             Player newPlayer = PopPlayer(humanSpawned == false, m_PopPoints[i], i);
 
@@ -393,15 +378,15 @@ public class GameService : IGameService
 
         if (Time.time - m_LastPowerUpTime > m_PowerUpRate)
         {
-            m_PowerUpRate = Random.Range(m_CurrentGameMode.MinPowerUpRate, m_CurrentGameMode.MaxPowerUpRate);
+            m_PowerUpRate = Random.Range(m_CurrentMatch.m_MinPowerUpRate, m_CurrentMatch.m_MaxPowerUpRate);
             m_LastPowerUpTime = Time.time;
 
-            var ups = m_CurrentGameMode.PowerUps;
+            var ups = m_CurrentMatch.m_AvailablePowerUps;
             PowerUpData powerUpData = ups[Random.Range(0, ups.Count)];
             PopObjectRandomly(powerUpData.m_Prefab);
         }
 
-        if (Time.time - m_LastBrushTime > m_CurrentGameMode.BrushSpawnRate)
+        if (Time.time - m_LastBrushTime > m_CurrentMatch.m_BrushSpawnRate)
         {
             m_LastBrushTime = Time.time;
             PopObjectRandomly(m_BrushPowerUpPrefab.gameObject);
@@ -437,7 +422,7 @@ public class GameService : IGameService
 
     public GameObject PickPowerUp()
     {
-        var ups = m_CurrentGameMode.PowerUps;
+        var ups = m_CurrentMatch.m_AvailablePowerUps;
         return ups[Random.Range(0, ups.Count)].m_Prefab;
     }
 

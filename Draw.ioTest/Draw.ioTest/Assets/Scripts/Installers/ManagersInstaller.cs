@@ -6,8 +6,8 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
 {
     [SerializeField] private BattleRoyaleConfig m_BattleRoyaleConfig;
     [SerializeField] private GameplayConfig m_GameplayConfig;
-    [SerializeField] private ClassicModeConfig m_ClassicModeConfig;
-    [SerializeField] private BoosterModeConfig m_BoosterModeConfig;
+    [SerializeField] private ClassicMode m_ClassicMode;
+    [SerializeField] private BoosterMode m_BoosterMode;
     [SerializeField] private RankingConfig m_RankingConfig;
     [SerializeField] private StatsConfig m_StatsConfig;
     [SerializeField] private TerrainConfig m_TerrainConfig;
@@ -34,8 +34,8 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
     {
         subContainer.Bind<GameService>().AsSingle();
         subContainer.Bind<GameplayConfig>().FromInstance(m_GameplayConfig).AsSingle();
-        subContainer.Bind<ClassicModeConfig>().FromInstance(m_ClassicModeConfig).AsSingle();
-        subContainer.Bind<BoosterModeConfig>().FromInstance(m_BoosterModeConfig).AsSingle();
+        subContainer.Bind<ClassicMode>().FromInstance(m_ClassicMode).AsSingle();
+        subContainer.Bind<BoosterMode>().FromInstance(m_BoosterMode).AsSingle();
     }
 
     private void InstallRankingManager(DiContainer subContainer)
