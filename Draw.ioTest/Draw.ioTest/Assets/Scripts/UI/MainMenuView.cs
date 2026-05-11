@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -21,15 +22,20 @@ public class MainMenuView : View<MainMenuView>
     public GameObject m_PointsPerRank;
     public RankingView m_RankingView;
 
+    [Header("Booster")]
+    public TMP_Text m_BoosterLevelText;
+
     [Header("Ranks")]
     public string[] m_Ratings;
 
     private IStatsService m_StatsService;
+    private BoosterMode m_BoosterMode;
 
     [Inject]
-    public void Construct(IStatsService statsService)
+    public void Construct(IStatsService statsService, BoosterMode boosterMode)
     {
         m_StatsService = statsService;
+        m_BoosterMode = boosterMode;
     }
 
     protected override void Awake()
@@ -51,6 +57,13 @@ public class MainMenuView : View<MainMenuView>
             GameService.StartBoosterMode();
     }
 
+    private void RefreshBoosterLevelLabel()
+    {
+        if (m_BoosterLevelText == null)
+            return;
+        m_BoosterLevelText.text = "Lvl " + m_BoosterMode.GetCurrentLevel().ToString("D2");
+    }
+
     protected override void OnGamePhaseChanged(GamePhase _GamePhase)
     {
         base.OnGamePhaseChanged(_GamePhase);
@@ -59,6 +72,7 @@ public class MainMenuView : View<MainMenuView>
         {
             case GamePhase.MAIN_MENU:
                 m_BrushGroundLight.SetActive(true);
+                RefreshBoosterLevelLabel();
                 Transition(true);
                 break;
 
