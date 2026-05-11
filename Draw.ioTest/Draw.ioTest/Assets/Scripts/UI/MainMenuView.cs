@@ -29,13 +29,11 @@ public class MainMenuView : View<MainMenuView>
     public string[] m_Ratings;
 
     private IStatsService m_StatsService;
-    private BoosterMode m_BoosterMode;
 
     [Inject]
-    public void Construct(IStatsService statsService, BoosterMode boosterMode)
+    public void Construct(IStatsService statsService)
     {
         m_StatsService = statsService;
-        m_BoosterMode = boosterMode;
     }
 
     protected override void Awake()
@@ -61,7 +59,7 @@ public class MainMenuView : View<MainMenuView>
     {
         if (m_BoosterLevelText == null)
             return;
-        m_BoosterLevelText.text = "Lvl " + m_BoosterMode.GetCurrentLevel().ToString("D2");
+        m_BoosterLevelText.text = "Lvl " + GameService.GetBoosterPlayerLevel().ToString("D2");
     }
 
     protected override void OnGamePhaseChanged(GamePhase _GamePhase)

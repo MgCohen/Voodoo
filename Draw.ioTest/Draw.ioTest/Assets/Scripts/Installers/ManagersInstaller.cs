@@ -14,9 +14,6 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
     
     public override void InstallBindings()
     {
-        Container.Bind<ClassicMode>().FromInstance(m_ClassicMode).AsSingle();
-        Container.Bind<BoosterMode>().FromInstance(m_BoosterMode).AsSingle();
-
         Container.BindInterfacesAndSelfTo<BattleRoyaleService>().FromSubContainerResolve().ByMethod(InstallBattleRoyaleManager).AsSingle();
         Container.BindInterfacesAndSelfTo<GameService>().FromSubContainerResolve().ByMethod(InstallGameManager).AsSingle();
         Container.BindInterfacesAndSelfTo<RankingService>().FromSubContainerResolve().ByMethod(InstallRankingManager).AsSingle();
@@ -36,6 +33,8 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
     {
         subContainer.Bind<GameService>().AsSingle();
         subContainer.Bind<GameplayConfig>().FromInstance(m_GameplayConfig).AsSingle();
+        subContainer.Bind<ClassicMode>().FromInstance(m_ClassicMode).AsSingle();
+        subContainer.Bind<BoosterMode>().FromInstance(m_BoosterMode).AsSingle();
     }
 
     private void InstallRankingManager(DiContainer subContainer)
