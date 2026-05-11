@@ -12,7 +12,6 @@ public static class Constants
 	public const string 		c_ConfettiPoolName = "ConfettiPool";
 
     // Save
-    public const string         c_LevelSave = "Level";
 	public const string			c_GameResultSave = "GameResult";
     public const string         c_BestScoreSave = "BestScore";
 	public const string         c_PlayerNameSave = "Nickname";
