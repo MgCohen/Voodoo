@@ -55,7 +55,7 @@ public class GameService : IGameService
     private void SetGameMode(GameMode _Mode)
     {
         m_CurrentMode = _Mode;
-        m_StatsService.SetActivePrefix(_Mode.StatsKeyPrefix);
+        m_StatsService.SetActiveMode(_Mode);
         m_CurrentMatch = _Mode.GetCurrentMatch(m_StatsService);
     }
 

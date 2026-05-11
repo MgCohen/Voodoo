@@ -10,10 +10,15 @@ public class BoosterMode : GameMode
     public override string StatsKeyPrefix => "Booster_";
 
     public override MatchSettings GetCurrentMatch(IStatsService _Stats)
+        => GetLevelData(_Stats.GetPlayerLevel() - 1).m_Match;
+
+    public override int GetXPForLevel(int _LevelIndex)
+        => GetLevelData(_LevelIndex).m_XPToNextLevel;
+
+    private BoosterLevelData GetLevelData(int _Index)
     {
-        int idx = _Stats.GetPlayerLevel() - 1;
-        if (idx >= 0 && idx < m_AuthoredLevels.Count)
-            return m_AuthoredLevels[idx].m_Match;
-        return m_FallbackLevel.m_Match;
+        if (_Index >= 0 && _Index < m_AuthoredLevels.Count)
+            return m_AuthoredLevels[_Index];
+        return m_FallbackLevel;
     }
 }

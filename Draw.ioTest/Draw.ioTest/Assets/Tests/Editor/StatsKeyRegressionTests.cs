@@ -11,25 +11,25 @@ public class StatsKeyRegressionTests
     // (and vice versa). If the prefix logic corrupts a key, these fail.
 
     private StatsService m_StatsService;
-    private StatsConfig m_Config;
+    private ClassicMode m_Mode;
 
     [SetUp]
     public void SetUp()
     {
         PlayerPrefs.DeleteAll();
 
-        m_Config = ScriptableObject.CreateInstance<StatsConfig>();
-        m_Config.m_XPForLevel = new List<int> { 100 };
+        m_Mode = ScriptableObject.CreateInstance<ClassicMode>();
+        m_Mode.m_XPThresholdPerLevel = new List<int> { 100 };
 
         m_StatsService = new StatsService();
-        m_StatsService.Construct(m_Config);
+        m_StatsService.SetActiveMode(m_Mode);
     }
 
     [TearDown]
     public void TearDown()
     {
         PlayerPrefs.DeleteAll();
-        Object.DestroyImmediate(m_Config);
+        Object.DestroyImmediate(m_Mode);
     }
 
     // ---- Write via StatsService, read via raw PlayerPrefs ----

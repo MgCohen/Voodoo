@@ -7,6 +7,7 @@ public abstract class GameMode : ScriptableObject
 
     public abstract string StatsKeyPrefix { get; }
     public abstract MatchSettings GetCurrentMatch(IStatsService _Stats);
+    public abstract int GetXPForLevel(int _LevelIndex);
 
     public void OnPreEndGame(IStatsService _Stats, int _FinishRank, int _Score)
     {

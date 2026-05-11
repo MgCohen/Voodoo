@@ -9,7 +9,6 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
     [SerializeField] private ClassicMode m_ClassicMode;
     [SerializeField] private BoosterMode m_BoosterMode;
     [SerializeField] private RankingConfig m_RankingConfig;
-    [SerializeField] private StatsConfig m_StatsConfig;
     [SerializeField] private TerrainConfig m_TerrainConfig;
 
     
@@ -47,7 +46,6 @@ public class ManagersInstaller : ScriptableObjectInstaller<ManagersInstaller>
     private void InstallStatsManager(DiContainer subContainer)
     {
         subContainer.Bind<StatsService>().AsSingle();
-        subContainer.Bind<StatsConfig>().FromInstance(m_StatsConfig).AsSingle();
     }
 
     private void InstallTerrainManager(DiContainer subContainer)

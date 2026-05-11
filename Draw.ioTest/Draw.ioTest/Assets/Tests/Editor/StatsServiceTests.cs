@@ -6,25 +6,25 @@ using System.Collections.Generic;
 public class StatsServiceTests
 {
     private StatsService m_StatsService;
-    private StatsConfig m_Config;
+    private ClassicMode m_Mode;
 
     [SetUp]
     public void SetUp()
     {
         PlayerPrefs.DeleteAll();
 
-        m_Config = ScriptableObject.CreateInstance<StatsConfig>();
-        m_Config.m_XPForLevel = new List<int> { 100, 200, 300, 400, 500 };
+        m_Mode = ScriptableObject.CreateInstance<ClassicMode>();
+        m_Mode.m_XPThresholdPerLevel = new List<int> { 100, 200, 300, 400, 500 };
 
         m_StatsService = new StatsService();
-        m_StatsService.Construct(m_Config);
+        m_StatsService.SetActiveMode(m_Mode);
     }
 
     [TearDown]
     public void TearDown()
     {
         PlayerPrefs.DeleteAll();
-        Object.DestroyImmediate(m_Config);
+        Object.DestroyImmediate(m_Mode);
     }
 
     // ---- Best Score: key = "BestScore" ----
@@ -209,8 +209,8 @@ public class StatsServiceTests
     [Test]
     public void GainXP_MultipleLevelUps()
     {
-        int threshold1 = m_Config.m_XPForLevel[0];
-        int threshold2 = m_Config.m_XPForLevel[1];
+        int threshold1 = m_Mode.m_XPThresholdPerLevel[0];
+        int threshold2 = m_Mode.m_XPThresholdPerLevel[1];
         int overflow = 50;
         m_StatsService.SetLastXP(threshold1 + threshold2 + overflow);
         m_StatsService.GainXP();
@@ -271,21 +271,21 @@ public class StatsServiceTests
     [Test]
     public void XPToNextLevel_ReturnsFirstEntry_AtLevel1()
     {
-        Assert.AreEqual(m_Config.m_XPForLevel[0], m_StatsService.XPToNextLevel());
+        Assert.AreEqual(m_Mode.m_XPThresholdPerLevel[0], m_StatsService.XPToNextLevel());
     }
 
     [Test]
     public void XPToNextLevel_ReturnsCorrectEntry_AtLevel2()
     {
         PlayerPrefs.SetInt(Constants.c_PlayerLevelSave, 2);
-        Assert.AreEqual(m_Config.m_XPForLevel[1], m_StatsService.XPToNextLevel());
+        Assert.AreEqual(m_Mode.m_XPThresholdPerLevel[1], m_StatsService.XPToNextLevel());
     }
 
     [Test]
     public void XPToNextLevel_ClampsToLastEntry_BeyondList()
     {
         PlayerPrefs.SetInt(Constants.c_PlayerLevelSave, 20);
-        int lastEntry = m_Config.m_XPForLevel[m_Config.m_XPForLevel.Count - 1];
+        int lastEntry = m_Mode.m_XPThresholdPerLevel[m_Mode.m_XPThresholdPerLevel.Count - 1];
         Assert.AreEqual(lastEntry, m_StatsService.XPToNextLevel());
     }
 

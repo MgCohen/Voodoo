@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
-using System.Text;
-using Zenject;
 
 public class StatsService : IStatsService
 {
@@ -19,19 +16,14 @@ public class StatsService : IStatsService
         }
     }
 
-    private string m_ActivePrefix = "";
-    private StatsConfig m_StatsConfig;
+    private GameMode m_ActiveMode;
 
-    [Inject]
-    public void Construct(StatsConfig _StatsConfig)
+    public void SetActiveMode(GameMode _Mode)
     {
-        m_StatsConfig = _StatsConfig;
+        m_ActiveMode = _Mode;
     }
 
-    public void SetActivePrefix(string _Prefix)
-    {
-        m_ActivePrefix = _Prefix ?? "";
-    }
+    private string m_ActivePrefix => m_ActiveMode != null ? m_ActiveMode.StatsKeyPrefix : "";
 
     private int GetGameResult(int _Index)
 	{
@@ -137,8 +129,7 @@ public class StatsService : IStatsService
 	public int XPToNextLevel(int _LevelStart = -1)
 	{
 		int currentLevel = _LevelStart == -1 ? GetPlayerLevel() - 1 : _LevelStart;
-		int index = Mathf.Min(currentLevel, m_StatsConfig.m_XPForLevel.Count - 1);
-		return (m_StatsConfig.m_XPForLevel[index]);
+		return m_ActiveMode.GetXPForLevel(currentLevel);
 	}
 
 	#region IAs
