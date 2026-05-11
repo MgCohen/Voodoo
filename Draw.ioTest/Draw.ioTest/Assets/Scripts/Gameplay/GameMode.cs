@@ -8,6 +8,8 @@ public abstract class GameMode : ScriptableObject
     public abstract string StatsKeyPrefix { get; }
     public abstract MatchSettings GetCurrentMatch(IStatsService _Stats);
     public abstract int GetXPForLevel(int _LevelIndex);
+    public abstract float GetAIDifficultyMin(IStatsService _Stats);
+    public virtual  float GetAIDifficultyMax(IStatsService _Stats) => 1f;
 
     public void OnPreEndGame(IStatsService _Stats, int _FinishRank, int _Score)
     {

@@ -30,11 +30,6 @@ public class GameService : IGameService
     public delegate void OnPlayerSpawned(Player _Player, int _Index);
     public event OnPlayerSpawned onPlayerSpawned;
 
-#if UNITY_EDITOR
-    public int m_DebugLevel = 1;
-    private static bool m_SaveCleared = false;
-#endif
-
     public PowerUp m_BrushPowerUpPrefab => m_GameplayConfig.m_BrushPowerUpPrefab;
     public GameObject m_HumanPlayer => m_GameplayConfig.m_HumanPlayer;
     public GameObject m_IAPlayer => m_GameplayConfig.m_IAPlayer;
@@ -49,8 +44,8 @@ public class GameService : IGameService
     private GameMode m_CurrentMode;
     private MatchSettings m_CurrentMatch;
     public int PlayerCount => m_CurrentMatch.m_PlayerCount;
-    public float GetAIDifficultyMin() => m_CurrentMatch.m_AIDifficultyMin;
-    public float GetAIDifficultyMax() => m_CurrentMatch.m_AIDifficultyMax;
+    public float GetAIDifficultyMin() => m_CurrentMode.GetAIDifficultyMin(m_StatsService);
+    public float GetAIDifficultyMax() => m_CurrentMode.GetAIDifficultyMax(m_StatsService);
 
     private void SetGameMode(GameMode _Mode)
     {
@@ -125,15 +120,6 @@ public class GameService : IGameService
     
     private void Init()
     {
-#if UNITY_EDITOR
-        if (m_SaveCleared == false)
-        {
-            //PlayerPrefs.DeleteAll();
-            m_SaveCleared = true;
-        }
-        PlayerPrefs.SetInt(Constants.c_LevelSave, m_DebugLevel);
-#endif
-
         Application.targetFrameRate = 60;
 
         m_Brushs = new List<BrushData>(Resources.LoadAll<BrushData>("Brushs"));

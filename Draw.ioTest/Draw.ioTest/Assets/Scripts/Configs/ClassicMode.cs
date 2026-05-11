@@ -15,4 +15,7 @@ public class ClassicMode : GameMode
         int idx = Mathf.Min(_LevelIndex, m_XPThresholdPerLevel.Count - 1);
         return m_XPThresholdPerLevel[idx];
     }
+
+    public override float GetAIDifficultyMin(IStatsService _Stats)
+        => Mathf.Clamp01(_Stats.GetLevel() / 2f);
 }
