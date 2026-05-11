@@ -15,6 +15,7 @@ public interface IStatsService
     int m_LastGain { get; set; }
     int GetXP();
     int GetPlayerLevel();
+    int GetPlayerLevel(GameMode _Mode);
     int XPToNextLevel(int currentLevel);
     string GetNickname();
     void SetNickname(string name);

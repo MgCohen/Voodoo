@@ -116,6 +116,12 @@ public class StatsService : IStatsService
 		return (PlayerPrefs.GetInt(m_ActivePrefix + Constants.c_PlayerLevelSave, 1));
 	}
 
+	public int GetPlayerLevel(GameMode _Mode)
+	{
+		string prefix = _Mode != null ? _Mode.StatsKeyPrefix : "";
+		return PlayerPrefs.GetInt(prefix + Constants.c_PlayerLevelSave, 1);
+	}
+
     void LevelUp()
 	{
 		PlayerPrefs.SetInt(m_ActivePrefix + Constants.c_PlayerLevelSave, GetPlayerLevel() + 1);

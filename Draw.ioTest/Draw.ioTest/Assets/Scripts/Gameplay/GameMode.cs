@@ -11,11 +11,6 @@ public abstract class GameMode : ScriptableObject
     public abstract float GetAIDifficultyMin(IStatsService _Stats);
     public virtual  float GetAIDifficultyMax(IStatsService _Stats) => 1f;
 
-    // Reads the mode's own player level without disturbing the active mode.
-    // Lets the main menu show "Lvl 05" for booster while classic is active.
-    public int GetCurrentLevel()
-        => PlayerPrefs.GetInt(StatsKeyPrefix + Constants.c_PlayerLevelSave, 1);
-
     public void OnPreEndGame(IStatsService _Stats, int _FinishRank, int _Score)
     {
         _Stats.TryToSetBestScore(_Score);

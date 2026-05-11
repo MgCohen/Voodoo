@@ -60,8 +60,6 @@ public class GameService : IGameService
         ChangePhase(GamePhase.LOADING);
     }
 
-    public int GetBoosterPlayerLevel() => m_BoosterMode.GetCurrentLevel();
-
     // Cache
     private IStatsService m_StatsService;
     private ProgressionView m_ProgressionView;

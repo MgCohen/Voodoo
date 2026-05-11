@@ -24,6 +24,7 @@ public class MainMenuView : View<MainMenuView>
 
     [Header("Booster")]
     public TMP_Text m_BoosterLevelText;
+    public GameMode m_BoosterMode;
 
     [Header("Ranks")]
     public string[] m_Ratings;
@@ -57,9 +58,9 @@ public class MainMenuView : View<MainMenuView>
 
     private void RefreshBoosterLevelLabel()
     {
-        if (m_BoosterLevelText == null)
+        if (m_BoosterLevelText == null || m_BoosterMode == null)
             return;
-        m_BoosterLevelText.text = "Lvl " + GameService.GetBoosterPlayerLevel().ToString("D2");
+        m_BoosterLevelText.text = "Lvl " + m_StatsService.GetPlayerLevel(m_BoosterMode).ToString("D2");
     }
 
     protected override void OnGamePhaseChanged(GamePhase _GamePhase)

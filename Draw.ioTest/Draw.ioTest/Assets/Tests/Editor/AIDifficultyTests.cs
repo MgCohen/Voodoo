@@ -137,6 +137,7 @@ public class AIDifficultyTests
 
         public float GetLevel() => Level;
         public int GetPlayerLevel() => PlayerLevel;
+        public int GetPlayerLevel(GameMode _Mode) => PlayerLevel;
 
         // unused for these tests
         public void SetActiveMode(GameMode _Mode) { }

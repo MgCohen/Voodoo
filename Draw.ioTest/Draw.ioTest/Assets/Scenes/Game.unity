@@ -1222,6 +1222,11 @@ PrefabInstance:
       propertyPath: m_BoosterLevelText
       value:
       objectReference: {fileID: 2073200940}
+    - target: {fileID: 114863918100999332, guid: ade9dc1200e32bb45ad4a7d1f3cda793,
+        type: 3}
+      propertyPath: m_BoosterMode
+      value:
+      objectReference: {fileID: 11400000, guid: d4924418ac16b304b8bdbc116cbaadb5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
