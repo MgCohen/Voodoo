@@ -102,28 +102,60 @@ public class SkinAtlas : MonoBehaviour
             SetLayerRecursive(child.gameObject, _Layer);
     }
 
-    // Measures the spawned brush's mesh bounds and rescales + recenters it so
-    // it fills (m_CellWorldSize * m_BrushFit) inside the slot, regardless of
-    // the source prefab's pivot or natural size.
+    // Per-brush auto-fit:
+    //   1. walk every visible MeshFilter under the spawned brush
+    //   2. transform its mesh's 8 local corners into world space (avoids the
+    //      stale-Renderer.bounds problem right after Instantiate, and the
+    //      result already accounts for any child transforms / scales /
+    //      rotations the source prefab has)
+    //   3. encapsulate into one world AABB
+    //   4. scale = (cellWorldSize * brushFit) / max(AABB size)
+    //   5. recentre via localPosition so the AABB sits on the slot pivot
     private void FitBrushToCell(BrushMainMenu _Slot)
     {
         if (_Slot.m_Current == null)
             return;
 
-        MeshRenderer[] renderers = _Slot.m_Current.GetComponentsInChildren<MeshRenderer>();
-        if (renderers.Length == 0)
+        Bounds world = default;
+        bool   hasAny = false;
+
+        MeshFilter[] filters = _Slot.m_Current.GetComponentsInChildren<MeshFilter>();
+        for (int f = 0; f < filters.Length; f++)
+        {
+            MeshFilter mf = filters[f];
+            if (mf.sharedMesh == null) continue;
+
+            MeshRenderer mr = mf.GetComponent<MeshRenderer>();
+            if (mr == null || !mr.enabled || !mr.gameObject.activeInHierarchy) continue;
+
+            Bounds local = mf.sharedMesh.bounds;
+            Vector3 mn = local.min;
+            Vector3 mx = local.max;
+            Transform t = mf.transform;
+
+            for (int cx = 0; cx < 2; cx++)
+            for (int cy = 0; cy < 2; cy++)
+            for (int cz = 0; cz < 2; cz++)
+            {
+                Vector3 c = t.TransformPoint(new Vector3(
+                    cx == 0 ? mn.x : mx.x,
+                    cy == 0 ? mn.y : mx.y,
+                    cz == 0 ? mn.z : mx.z));
+
+                if (!hasAny) { world = new Bounds(c, Vector3.zero); hasAny = true; }
+                else         world.Encapsulate(c);
+            }
+        }
+
+        if (!hasAny)
             return;
 
-        Bounds bounds = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++)
-            bounds.Encapsulate(renderers[i].bounds);
-
-        float maxDim = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+        float maxDim = Mathf.Max(world.size.x, world.size.y, world.size.z);
         if (maxDim < 0.0001f)
             return;
 
         float scale = (m_CellWorldSize * m_BrushFit) / maxDim;
-        Vector3 offsetFromPivot = bounds.center - _Slot.m_Current.position;
+        Vector3 offsetFromPivot = world.center - _Slot.m_Current.position;
 
         _Slot.m_Current.localPosition = -offsetFromPivot * scale;
         _Slot.m_Current.localScale    = Vector3.one * scale;
