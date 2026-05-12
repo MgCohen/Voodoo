@@ -102,15 +102,11 @@ public class SkinAtlas : MonoBehaviour
             SetLayerRecursive(child.gameObject, _Layer);
     }
 
-    // Per-brush auto-fit:
-    //   1. walk every visible MeshFilter under the spawned brush
-    //   2. transform its mesh's 8 local corners into world space (avoids the
-    //      stale-Renderer.bounds problem right after Instantiate, and the
-    //      result already accounts for any child transforms / scales /
-    //      rotations the source prefab has)
-    //   3. encapsulate into one world AABB
-    //   4. scale = (cellWorldSize * brushFit) / max(AABB size)
-    //   5. recentre via localPosition so the AABB sits on the slot pivot
+    // Per-brush auto-fit. Builds one world-space AABB from every visible mesh
+    // (both static MeshRenderer/MeshFilter and SkinnedMeshRenderer - the latter
+    // is what Brush_2 / Brush_4 use, and missing it underestimated the size and
+    // made those brushes overflow their cell). Then scales + recentres the
+    // brush so its largest dimension is cellWorldSize * brushFit.
     private void FitBrushToCell(BrushMainMenu _Slot)
     {
         if (_Slot.m_Current == null)
@@ -124,27 +120,20 @@ public class SkinAtlas : MonoBehaviour
         {
             MeshFilter mf = filters[f];
             if (mf.sharedMesh == null) continue;
-
             MeshRenderer mr = mf.GetComponent<MeshRenderer>();
             if (mr == null || !mr.enabled || !mr.gameObject.activeInHierarchy) continue;
 
-            Bounds local = mf.sharedMesh.bounds;
-            Vector3 mn = local.min;
-            Vector3 mx = local.max;
-            Transform t = mf.transform;
+            EncapsulateMeshCorners(mf.sharedMesh.bounds, mf.transform, ref world, ref hasAny);
+        }
 
-            for (int cx = 0; cx < 2; cx++)
-            for (int cy = 0; cy < 2; cy++)
-            for (int cz = 0; cz < 2; cz++)
-            {
-                Vector3 c = t.TransformPoint(new Vector3(
-                    cx == 0 ? mn.x : mx.x,
-                    cy == 0 ? mn.y : mx.y,
-                    cz == 0 ? mn.z : mx.z));
+        SkinnedMeshRenderer[] skinned = _Slot.m_Current.GetComponentsInChildren<SkinnedMeshRenderer>();
+        for (int s = 0; s < skinned.Length; s++)
+        {
+            SkinnedMeshRenderer smr = skinned[s];
+            if (smr.sharedMesh == null) continue;
+            if (!smr.enabled || !smr.gameObject.activeInHierarchy) continue;
 
-                if (!hasAny) { world = new Bounds(c, Vector3.zero); hasAny = true; }
-                else         world.Encapsulate(c);
-            }
+            EncapsulateMeshCorners(smr.sharedMesh.bounds, smr.transform, ref world, ref hasAny);
         }
 
         if (!hasAny)
@@ -159,5 +148,24 @@ public class SkinAtlas : MonoBehaviour
 
         _Slot.m_Current.localPosition = -offsetFromPivot * scale;
         _Slot.m_Current.localScale    = Vector3.one * scale;
+    }
+
+    private static void EncapsulateMeshCorners(Bounds _Local, Transform _T, ref Bounds _World, ref bool _HasAny)
+    {
+        Vector3 mn = _Local.min;
+        Vector3 mx = _Local.max;
+
+        for (int cx = 0; cx < 2; cx++)
+        for (int cy = 0; cy < 2; cy++)
+        for (int cz = 0; cz < 2; cz++)
+        {
+            Vector3 c = _T.TransformPoint(new Vector3(
+                cx == 0 ? mn.x : mx.x,
+                cy == 0 ? mn.y : mx.y,
+                cz == 0 ? mn.z : mx.z));
+
+            if (!_HasAny) { _World = new Bounds(c, Vector3.zero); _HasAny = true; }
+            else          _World.Encapsulate(c);
+        }
     }
 }
