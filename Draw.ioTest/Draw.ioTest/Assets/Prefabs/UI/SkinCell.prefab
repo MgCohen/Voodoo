@@ -136,6 +136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   m_Preview: {fileID: 107000000000003}
   m_Button: {fileID: 105000000000001}
+  m_Background: {fileID: 104000000000001}
 --- !u!1 &101000000000003
 GameObject:
   m_ObjectHideFlags: 0

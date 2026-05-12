@@ -11,6 +11,7 @@ public class SkinAtlas : MonoBehaviour
     [SerializeField] private int            m_RTWidth       = 512;
     [SerializeField] private float          m_CellWorldSize = 3f;
     [SerializeField] private float          m_BrushYOffset  = -1.5f;
+    [SerializeField] private float          m_BrushScale    = 1f;
 
     public Texture Output => m_RT;
     public int     Cols   => m_Columns;
@@ -53,7 +54,10 @@ public class SkinAtlas : MonoBehaviour
 
             slot.Set(_Skins[i]);
             if (slot.m_Current != null)
+            {
                 slot.m_Current.localPosition = new Vector3(0f, m_BrushYOffset, 0f);
+                slot.m_Current.localScale    = Vector3.one * m_BrushScale;
+            }
             SetLayerRecursive(slot.gameObject, m_Layer);
             m_Slots.Add(slot);
         }

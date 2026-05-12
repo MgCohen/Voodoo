@@ -6,6 +6,7 @@ public class SkinCell : MonoBehaviour
 {
     [SerializeField] private RawImage m_Preview;
     [SerializeField] private Button   m_Button;
+    [SerializeField] private Image    m_Background;
 
     private int m_Index;
     private Action<int> m_OnClick;
@@ -20,6 +21,12 @@ public class SkinCell : MonoBehaviour
 
         m_Button.onClick.RemoveAllListeners();
         m_Button.onClick.AddListener(OnClick);
+    }
+
+    public void SetBackgroundColor(Color _Color)
+    {
+        if (m_Background != null)
+            m_Background.color = _Color;
     }
 
     private void OnClick()

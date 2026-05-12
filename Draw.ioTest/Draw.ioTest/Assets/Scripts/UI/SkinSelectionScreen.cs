@@ -9,6 +9,7 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
     [SerializeField] private RectTransform  m_CellParent;
     [SerializeField] private SkinCell       m_CellPrefab;
     [SerializeField] private RectTransform  m_SelectionHighlight;
+    [SerializeField] private Color          m_CellBackgroundColor = new Color(0.18f, 0.22f, 0.45f, 1f);
 
     [Header("Hero (direct 3D in scene)")]
     [SerializeField] private BrushMainMenu  m_HeroBrush;
@@ -90,6 +91,7 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         {
             SkinCell cell = Instantiate(m_CellPrefab, m_CellParent);
             cell.Setup(i, m_Atlas.Output, m_Atlas.GetUV(i), Select);
+            cell.SetBackgroundColor(m_CellBackgroundColor);
             m_Cells.Add(cell);
         }
 
