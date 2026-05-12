@@ -8,7 +8,6 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
     [SerializeField] private SkinAtlas      m_Atlas;
     [SerializeField] private RectTransform  m_CellParent;
     [SerializeField] private SkinCell       m_CellPrefab;
-    [SerializeField] private RectTransform  m_SelectionHighlight;
     [SerializeField] private Color          m_CellBackgroundColor = new Color(0.18f, 0.22f, 0.45f, 1f);
 
     [Header("Hero (direct 3D in scene)")]
@@ -106,15 +105,6 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         m_SelectedSkin = _Index;
 
         SkinData skin = GameService.m_Skins[_Index];
-
-        if (m_SelectionHighlight != null)
-        {
-            m_SelectionHighlight.SetParent(m_Cells[_Index].transform, false);
-            m_SelectionHighlight.anchorMin = Vector2.zero;
-            m_SelectionHighlight.anchorMax = Vector2.one;
-            m_SelectionHighlight.offsetMin = Vector2.zero;
-            m_SelectionHighlight.offsetMax = Vector2.zero;
-        }
 
         if (m_HeroBrush != null)
             m_HeroBrush.Set(skin);

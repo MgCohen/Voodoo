@@ -102,70 +102,44 @@ public class SkinAtlas : MonoBehaviour
             SetLayerRecursive(child.gameObject, _Layer);
     }
 
-    // Per-brush auto-fit. Builds one world-space AABB from every visible mesh
-    // (both static MeshRenderer/MeshFilter and SkinnedMeshRenderer - the latter
-    // is what Brush_2 / Brush_4 use, and missing it underestimated the size and
-    // made those brushes overflow their cell). Then scales + recentres the
-    // brush so its largest dimension is cellWorldSize * brushFit.
+    // Per-brush auto-fit. Walks every visible Renderer on the spawned brush,
+    // builds the world-space AABB from each one's .bounds, then scales +
+    // recentres the brush so its largest dimension fills cellWorldSize *
+    // brushFit. Using the Renderer base class covers MeshRenderer (Brush_1,
+    // Brush_3) and SkinnedMeshRenderer (Brush_2, Brush_4) plus any future
+    // type, without us having to remember to add a separate pass. Particle
+    // renderers are excluded because their bounds cover simulation space
+    // rather than the visible particles.
     private void FitBrushToCell(BrushMainMenu _Slot)
     {
         if (_Slot.m_Current == null)
             return;
 
-        Bounds world = default;
+        Bounds bounds = default;
         bool   hasAny = false;
 
-        MeshFilter[] filters = _Slot.m_Current.GetComponentsInChildren<MeshFilter>();
-        for (int f = 0; f < filters.Length; f++)
+        Renderer[] renderers = _Slot.m_Current.GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
         {
-            MeshFilter mf = filters[f];
-            if (mf.sharedMesh == null) continue;
-            MeshRenderer mr = mf.GetComponent<MeshRenderer>();
-            if (mr == null || !mr.enabled || !mr.gameObject.activeInHierarchy) continue;
+            Renderer r = renderers[i];
+            if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+            if (r is ParticleSystemRenderer) continue;
 
-            EncapsulateMeshCorners(mf.sharedMesh.bounds, mf.transform, ref world, ref hasAny);
-        }
-
-        SkinnedMeshRenderer[] skinned = _Slot.m_Current.GetComponentsInChildren<SkinnedMeshRenderer>();
-        for (int s = 0; s < skinned.Length; s++)
-        {
-            SkinnedMeshRenderer smr = skinned[s];
-            if (smr.sharedMesh == null) continue;
-            if (!smr.enabled || !smr.gameObject.activeInHierarchy) continue;
-
-            EncapsulateMeshCorners(smr.sharedMesh.bounds, smr.transform, ref world, ref hasAny);
+            if (!hasAny) { bounds = r.bounds; hasAny = true; }
+            else         bounds.Encapsulate(r.bounds);
         }
 
         if (!hasAny)
             return;
 
-        float maxDim = Mathf.Max(world.size.x, world.size.y, world.size.z);
+        float maxDim = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
         if (maxDim < 0.0001f)
             return;
 
-        float scale = (m_CellWorldSize * m_BrushFit) / maxDim;
-        Vector3 offsetFromPivot = world.center - _Slot.m_Current.position;
+        float   scale  = (m_CellWorldSize * m_BrushFit) / maxDim;
+        Vector3 offset = bounds.center - _Slot.m_Current.position;
 
-        _Slot.m_Current.localPosition = -offsetFromPivot * scale;
+        _Slot.m_Current.localPosition = -offset * scale;
         _Slot.m_Current.localScale    = Vector3.one * scale;
-    }
-
-    private static void EncapsulateMeshCorners(Bounds _Local, Transform _T, ref Bounds _World, ref bool _HasAny)
-    {
-        Vector3 mn = _Local.min;
-        Vector3 mx = _Local.max;
-
-        for (int cx = 0; cx < 2; cx++)
-        for (int cy = 0; cy < 2; cy++)
-        for (int cz = 0; cz < 2; cz++)
-        {
-            Vector3 c = _T.TransformPoint(new Vector3(
-                cx == 0 ? mn.x : mx.x,
-                cy == 0 ? mn.y : mx.y,
-                cz == 0 ? mn.z : mx.z));
-
-            if (!_HasAny) { _World = new Bounds(c, Vector3.zero); _HasAny = true; }
-            else          _World.Encapsulate(c);
-        }
     }
 }
