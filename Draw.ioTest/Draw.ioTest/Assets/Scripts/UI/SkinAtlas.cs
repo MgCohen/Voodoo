@@ -10,8 +10,7 @@ public class SkinAtlas : MonoBehaviour
     [SerializeField] private int            m_Layer         = 31;
     [SerializeField] private int            m_RTWidth       = 512;
     [SerializeField] private float          m_CellWorldSize = 3f;
-    [SerializeField] private float          m_BrushYOffset  = -1.5f;
-    [SerializeField] private float          m_BrushScale    = 1f;
+    [SerializeField, Range(0.1f, 1f)] private float m_BrushFit = 0.9f;
 
     public Texture Output => m_RT;
     public int     Cols   => m_Columns;
@@ -53,11 +52,7 @@ public class SkinAtlas : MonoBehaviour
                 0f);
 
             slot.Set(_Skins[i]);
-            if (slot.m_Current != null)
-            {
-                slot.m_Current.localPosition = new Vector3(0f, m_BrushYOffset, 0f);
-                slot.m_Current.localScale    = Vector3.one * m_BrushScale;
-            }
+            FitBrushToCell(slot);
             SetLayerRecursive(slot.gameObject, m_Layer);
             m_Slots.Add(slot);
         }
@@ -105,5 +100,32 @@ public class SkinAtlas : MonoBehaviour
         _GO.layer = _Layer;
         foreach (Transform child in _GO.transform)
             SetLayerRecursive(child.gameObject, _Layer);
+    }
+
+    // Measures the spawned brush's mesh bounds and rescales + recenters it so
+    // it fills (m_CellWorldSize * m_BrushFit) inside the slot, regardless of
+    // the source prefab's pivot or natural size.
+    private void FitBrushToCell(BrushMainMenu _Slot)
+    {
+        if (_Slot.m_Current == null)
+            return;
+
+        MeshRenderer[] renderers = _Slot.m_Current.GetComponentsInChildren<MeshRenderer>();
+        if (renderers.Length == 0)
+            return;
+
+        Bounds bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+            bounds.Encapsulate(renderers[i].bounds);
+
+        float maxDim = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+        if (maxDim < 0.0001f)
+            return;
+
+        float scale = (m_CellWorldSize * m_BrushFit) / maxDim;
+        Vector3 offsetFromPivot = bounds.center - _Slot.m_Current.position;
+
+        _Slot.m_Current.localPosition = -offsetFromPivot * scale;
+        _Slot.m_Current.localScale    = Vector3.one * scale;
     }
 }
