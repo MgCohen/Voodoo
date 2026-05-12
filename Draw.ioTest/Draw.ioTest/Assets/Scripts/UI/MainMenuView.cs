@@ -26,8 +26,6 @@ public class MainMenuView : View<MainMenuView>
     public TMP_Text m_BoosterLevelText;
     public GameMode m_BoosterMode;
 
-    [Header("Skin selection")]
-    public SkinSelectionScreen m_SkinScreen;
 
     [Header("Ranks")]
     public string[] m_Ratings;
@@ -86,6 +84,13 @@ public class MainMenuView : View<MainMenuView>
                 if (m_Visible)
                     Transition(false);
                 break;
+
+            case GamePhase.SKIN_SELECTION:
+                m_BrushGroundLight.SetActive(false);
+                m_BrushesPrefab.SetActive(false);
+                if (m_Visible)
+                    Transition(false);
+                break;
         }
     }
 
@@ -126,8 +131,8 @@ public class MainMenuView : View<MainMenuView>
 
     public void OpenSkinScreen()
     {
-        if (m_SkinScreen != null)
-            m_SkinScreen.Show();
+        if (GameService.currentPhase == GamePhase.MAIN_MENU)
+            GameService.ChangePhase(GamePhase.SKIN_SELECTION);
     }
 
     public void LeftButtonBrush()

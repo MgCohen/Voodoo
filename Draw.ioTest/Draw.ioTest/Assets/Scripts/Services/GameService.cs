@@ -11,7 +11,8 @@ public enum GamePhase
     LOADING,
     GAME,
     PRE_END,
-    END
+    END,
+    SKIN_SELECTION
 }
 
 public class GameService : IGameService

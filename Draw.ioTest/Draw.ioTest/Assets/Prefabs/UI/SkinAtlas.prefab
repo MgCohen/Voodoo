@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Columns: 3
   m_Layer: 31
   m_RTWidth: 512
-  m_CellWorldSize: 3
+  m_CellWorldSize: 5
 --- !u!1 &201000000000002
 GameObject:
   m_ObjectHideFlags: 0

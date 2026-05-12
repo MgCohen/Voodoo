@@ -24,7 +24,30 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         m_StatsService = _StatsService;
     }
 
-    public void Show()
+    public void Hide()
+    {
+        if (GameService.currentPhase == GamePhase.SKIN_SELECTION)
+            GameService.ChangePhase(GamePhase.MAIN_MENU);
+    }
+
+    protected override void OnGamePhaseChanged(GamePhase _GamePhase)
+    {
+        base.OnGamePhaseChanged(_GamePhase);
+
+        switch (_GamePhase)
+        {
+            case GamePhase.SKIN_SELECTION:
+                Open();
+                break;
+
+            default:
+                if (m_Visible)
+                    Close();
+                break;
+        }
+    }
+
+    private void Open()
     {
         if (!m_Built)
             Build();
@@ -37,12 +60,12 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         Transition(true);
     }
 
-    public void Hide()
+    private void Close()
     {
         if (m_SelectedSkin >= 0)
         {
-            m_StatsService.FavoriteSkin   = m_SelectedSkin;
-            GameService.m_PlayerSkinID    = m_SelectedSkin;
+            m_StatsService.FavoriteSkin = m_SelectedSkin;
+            GameService.m_PlayerSkinID  = m_SelectedSkin;
         }
 
         m_Atlas.SetActive(false);
@@ -50,14 +73,6 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
             m_HeroAtlas.SetActive(false);
 
         Transition(false);
-    }
-
-    protected override void OnGamePhaseChanged(GamePhase _GamePhase)
-    {
-        base.OnGamePhaseChanged(_GamePhase);
-
-        if (_GamePhase != GamePhase.MAIN_MENU && m_Visible)
-            Hide();
     }
 
     private void Build()
