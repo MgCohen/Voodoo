@@ -1038,7 +1038,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_SkinScreen
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1620914532}
     - target: {fileID: 114863918100999332, guid: ade9dc1200e32bb45ad4a7d1f3cda793,
         type: 3}
       propertyPath: m_ColoredImages.Array.size
@@ -2222,6 +2222,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 302000000000020, guid: f1e2d3c4b5a6071829304152637485a6, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.0006881434
+      objectReference: {fileID: 0}
     - target: {fileID: 304000000000001, guid: f1e2d3c4b5a6071829304152637485a6, type: 3}
       propertyPath: m_Atlas
       value: 
@@ -2957,6 +2961,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1620914532 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 304000000000001, guid: f1e2d3c4b5a6071829304152637485a6,
+    type: 3}
+  m_PrefabInstance: {fileID: 965282082}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e281cd0ce46c57d44b3044c17ee7f9de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1693293674
