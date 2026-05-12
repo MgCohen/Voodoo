@@ -2233,7 +2233,7 @@ PrefabInstance:
     - target: {fileID: 304000000000001, guid: f1e2d3c4b5a6071829304152637485a6, type: 3}
       propertyPath: m_HeroAtlas
       value: 
-      objectReference: {fileID: 1944569254}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3114,75 +3114,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 887063c6438214ea7b38417d8eb54abb, type: 3}
---- !u!1001 &1944569253
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 211000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_Name
-      value: SkinHeroAtlas
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -100
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 212000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2, type: 3}
---- !u!114 &1944569254 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 213000000000001, guid: b3c4d5e6f70819203a4b5c6d7e8f90a2,
-    type: 3}
-  m_PrefabInstance: {fileID: 1944569253}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c430c3aaecfbf464997e5e68952f4fa6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1956384466 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114516521797923640, guid: 03a9496c58ba7417f8901203b24b08f6,
@@ -3329,4 +3260,3 @@ SceneRoots:
   - {fileID: 1057037994}
   - {fileID: 1369991481}
   - {fileID: 963019598}
-  - {fileID: 1944569253}
