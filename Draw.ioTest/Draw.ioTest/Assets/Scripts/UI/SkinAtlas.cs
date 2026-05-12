@@ -50,9 +50,8 @@ public class SkinAtlas : MonoBehaviour
                -(row - (Rows      - 1) * 0.5f) * m_CellWorldSize,
                 0f);
 
-            SetLayerRecursive(slot.gameObject, m_Layer);
-
             slot.Set(_Skins[i]);
+            SetLayerRecursive(slot.gameObject, m_Layer);
             m_Slots.Add(slot);
         }
     }

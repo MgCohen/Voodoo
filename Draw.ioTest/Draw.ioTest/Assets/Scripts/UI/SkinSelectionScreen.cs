@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
 
-public class SkinSelectionScreen : MonoBehaviour
+public class SkinSelectionScreen : View<SkinSelectionScreen>
 {
-    [SerializeField] private Animator       m_Animator;
     [SerializeField] private SkinAtlas      m_Atlas;
     [SerializeField] private RectTransform  m_CellParent;
     [SerializeField] private SkinCell       m_CellPrefab;
     [SerializeField] private RectTransform  m_SelectionHighlight;
-    [SerializeField] private BrushMainMenu  m_Hero;
+    [SerializeField] private SkinAtlas      m_HeroAtlas;
+    [SerializeField] private RawImage       m_HeroPreview;
 
-    private IGameService  m_GameService;
     private IStatsService m_StatsService;
 
     private readonly List<SkinCell> m_Cells = new List<SkinCell>();
@@ -19,9 +19,8 @@ public class SkinSelectionScreen : MonoBehaviour
     private bool m_Built;
 
     [Inject]
-    public void Construct(IGameService _GameService, IStatsService _StatsService)
+    public void Construct(IStatsService _StatsService)
     {
-        m_GameService  = _GameService;
         m_StatsService = _StatsService;
     }
 
@@ -31,27 +30,39 @@ public class SkinSelectionScreen : MonoBehaviour
             Build();
 
         m_Atlas.SetActive(true);
+        if (m_HeroAtlas != null)
+            m_HeroAtlas.SetActive(true);
+
         Select(Mathf.Clamp(m_StatsService.FavoriteSkin, 0, m_Cells.Count - 1));
-        m_Animator.SetBool("Visible", true);
+        Transition(true);
     }
 
     public void Hide()
     {
         if (m_SelectedSkin >= 0)
         {
-            m_StatsService.FavoriteSkin    = m_SelectedSkin;
-            m_GameService.m_PlayerSkinID   = m_SelectedSkin;
-            if (m_Hero != null)
-                m_Hero.Set(m_GameService.m_Skins[m_SelectedSkin]);
+            m_StatsService.FavoriteSkin   = m_SelectedSkin;
+            GameService.m_PlayerSkinID    = m_SelectedSkin;
         }
 
         m_Atlas.SetActive(false);
-        m_Animator.SetBool("Visible", false);
+        if (m_HeroAtlas != null)
+            m_HeroAtlas.SetActive(false);
+
+        Transition(false);
+    }
+
+    protected override void OnGamePhaseChanged(GamePhase _GamePhase)
+    {
+        base.OnGamePhaseChanged(_GamePhase);
+
+        if (_GamePhase != GamePhase.MAIN_MENU && m_Visible)
+            Hide();
     }
 
     private void Build()
     {
-        List<SkinData> skins = m_GameService.m_Skins;
+        List<SkinData> skins = GameService.m_Skins;
         m_Atlas.Build(skins);
 
         for (int i = 0; i < skins.Count; i++)
@@ -74,8 +85,8 @@ public class SkinSelectionScreen : MonoBehaviour
 
         m_SelectedSkin = _Index;
 
-        Color tint = m_GameService.m_Skins[_Index].Color.m_Colors[0];
-        m_Cells[_Index].SetSelected(true, tint);
+        SkinData skin = GameService.m_Skins[_Index];
+        m_Cells[_Index].SetSelected(true, skin.Color.m_Colors[0]);
 
         if (m_SelectionHighlight != null)
         {
@@ -86,7 +97,14 @@ public class SkinSelectionScreen : MonoBehaviour
             m_SelectionHighlight.offsetMax = Vector2.zero;
         }
 
-        if (m_Hero != null)
-            m_Hero.Set(m_GameService.m_Skins[_Index]);
+        if (m_HeroAtlas != null)
+        {
+            m_HeroAtlas.Build(new List<SkinData> { skin });
+            if (m_HeroPreview != null)
+            {
+                m_HeroPreview.texture = m_HeroAtlas.Output;
+                m_HeroPreview.uvRect  = new Rect(0f, 0f, 1f, 1f);
+            }
+        }
     }
 }
