@@ -26,6 +26,9 @@ public class MainMenuView : View<MainMenuView>
     public TMP_Text m_BoosterLevelText;
     public GameMode m_BoosterMode;
 
+    [Header("Skin selection")]
+    public SkinSelectionScreen m_SkinScreen;
+
     [Header("Ranks")]
     public string[] m_Ratings;
 
@@ -119,6 +122,12 @@ public class MainMenuView : View<MainMenuView>
     public int GetRankingCount()
     {
         return m_Ratings.Length;
+    }
+
+    public void OpenSkinScreen()
+    {
+        if (m_SkinScreen != null)
+            m_SkinScreen.Show();
     }
 
     public void LeftButtonBrush()
