@@ -1,186 +1,238 @@
 # Task 3 — Debug Menu
 
 ## Goal
-Menu accessible from Main Menu to toggle Features 1 & 2 on/off. All off = original game state.
+Menu accessible from Main Menu that toggles Features 1 (Booster mode) & 2 (Skin Selection screen) on/off, individually. All off → game behaves like the original unmodified project.
+
+Duration target: **1h** per the spec. Assessment criteria: *clarity and ease of use*.
 
 ---
 
-## Step 1: Understand existing patterns
+## State check (post Tasks 1 & 2)
 
-### SettingsPanel (the closest reference)
-- **NOT a View\<T>** — plain MonoBehaviour
-- Opens/closes via **Animator** with `SetBool("Visible", value)`
-- Vibration toggle is an **Image button with sprite swap**, NOT a Unity Toggle component
-- Directly writes to PlayerPrefs, no event broadcast
-- Accessed from MainMenuView via button
+### What exists
+- `SettingsPanel` is the only similar UI artifact in the project. Plain `MonoBehaviour`, Animator-driven (`SetBool("Visible", …)`), Image button + sprite swap for the vibration toggle, writes `PlayerPrefs` directly via a private property.
+- `MainMenuView` currently shows: Play button, Booster button + level label (Task 1), Skin-screen button (Task 2). The old `BrushSelect` group (3D brush hero + left/right arrows) is still in the prefab but `m_IsActive: 0`, and its `m_OnClick` bindings were just emptied in the cleanup commit.
+- The original arrow-handler methods (`LeftButtonBrush`, `RightButtonBrush`, `ChangeBrush`) and fields (`m_BrushesPrefab`, `m_BrushGroundLight`, `m_IdSkin`) were removed from `MainMenuView` during Task 2 — no longer in code.
 
-### Toggle pattern (vibration)
-```csharp
-// SettingsPanel.cs
-public bool Vibration
-{
-    get { return PlayerPrefs.GetInt(Constants.c_VibrationSave, 1) == 1; }
-    set {
-        PlayerPrefs.SetInt(Constants.c_VibrationSave, value ? 1 : 0);
-        m_VibrationButton.sprite = value ? m_VibrationOnSprite : m_VibrationOffSprite;
-    }
-}
-
-public void ClickVibration() { Vibration = !Vibration; }
-```
-
-Button click → flip bool → swap sprite → save PlayerPrefs. No events. Follow this.
-
-### Save keys
-All defined in `Constants.cs`. `"FavoriteSkin"` in StatsService is the one exception (inconsistency in the codebase).
+### Implication
+When skin selection feature is OFF, the disabled state needs to behave **exactly like the original** — meaning the 3D brush hero shows again, arrows cycle skins, `SetTitleColor` updates the brush model. We have to restore the deleted code paths. The Booster feature OFF case is simpler — just hide the entry point; no Classic-mode behavior was changed.
 
 ---
 
-## Step 2: Add constants
+## Decisions
 
-Add to `Assets/Scripts/Gameplay/Constants.cs`:
+### 1. Flag-reading pattern — **Direct PlayerPrefs**
+Settled. Two keys, written by `DebugPanel`, read by `MainMenuView` on MAIN_MENU phase entry and after each debug toggle. Mirrors `c_VibrationSave`. No new abstractions.
 
+Why not the other options:
+- Static class wrapper: gain is nil for 2 booleans; introduces a new pattern not present elsewhere.
+- `IDebugService` via Zenject: overkill — only one consumer.
+- Singleton MonoBehaviour: requires scene wiring + Instance plumbing for no gain over PlayerPrefs.
+
+### 2. DebugPanel shape — **Mirror SettingsPanel**
+- Plain `MonoBehaviour` (no `View<T>`).
+- Animator with `Visible` bool (reuse SettingsPanel's animation controller if structurally compatible, else clone).
+- Two Image buttons, sprite swap on/off — reuse the vibration on/off sprites already in the project, or use generic toggle sprites.
+- `ClickToggleDebugPanel()` opens/closes (scene-wired from MainMenu's debug button).
+- `ClickBoosterToggle()` / `ClickSkinSelectionToggle()` flip the respective flag, save PlayerPrefs, swap sprite, and call `MainMenuView.Instance.RefreshFeatureVisibility()` immediately so the change is visible without closing the panel.
+
+### 3. Defaults
+Both features default **ON** (`PlayerPrefs.GetInt(key, 1)`). Reviewer's fresh install sees the candidate's full submission. They toggle OFF to verify the original state.
+
+### 4. Refresh flow
+- `MainMenuView.Awake()` calls `RefreshFeatureVisibility()` once.
+- `DebugPanel` calls `MainMenuView.Instance.RefreshFeatureVisibility()` directly on each toggle. `MainMenuView` is `View<MainMenuView>` (i.e. `SingletonMB`), so `Instance` is available. No event bus needed.
+
+---
+
+## Implementation
+
+### Step A — Constants (5 min)
+Add to [Constants.cs](Draw.ioTest/Draw.ioTest/Assets/Scripts/Gameplay/Constants.cs):
 ```csharp
-public const string c_DebugBoosterModeSave   = "DebugBoosterMode";
+public const string c_DebugBoosterModeSave    = "DebugBoosterMode";
 public const string c_DebugSkinSelectionSave  = "DebugSkinSelection";
 ```
 
----
-
-## Step 3: DebugPanel
-
-`Assets/Scripts/UI/DebugPanel.cs`
-
-Follow SettingsPanel pattern: plain MonoBehaviour, Animator for show/hide, Image buttons with sprite swap.
-
-Note: SettingsPanel is NOT a SingletonMB — it's a bare `MonoBehaviour`. But SettingsPanel is never accessed from code (100% scene-wired). Our DebugPanel might need to be accessed from code depending on which flag-reading pattern we pick (see `PATTERNS_FeatureFlags.md`). Decide during implementation.
+### Step B — Restore original skin-cycle code in `MainMenuView` (15 min)
+Re-add the deleted fields and methods so the feature-OFF state is faithful:
 
 ```csharp
-// Minimum shape — details TBD based on flag pattern decision
+public GameObject m_BrushesPrefab;   // 3D brush hero, lives inside BrushSelect group
+public int m_IdSkin = 0;
+
+protected override void Awake() {
+    base.Awake();
+    m_IdSkin = m_StatsService.FavoriteSkin;
+    RefreshFeatureVisibility();
+}
+
+public void LeftButtonBrush()  { ChangeBrush(m_IdSkin - 1); }
+public void RightButtonBrush() { ChangeBrush(m_IdSkin + 1); }
+
+public void ChangeBrush(int _NewBrush) {
+    int count = GameService.m_Skins.Count;
+    if (count == 0) return;
+    m_IdSkin = ((_NewBrush % count) + count) % count;
+    GameService.m_PlayerSkinID = m_IdSkin;
+    m_StatsService.FavoriteSkin = m_IdSkin;
+    if (m_BrushesPrefab != null && m_BrushesPrefab.activeInHierarchy)
+        m_BrushesPrefab.GetComponent<BrushMainMenu>().Set(GameService.m_Skins[m_IdSkin]);
+    GameService.SetColor(GameService.ComputeCurrentPlayerColor(true, 0));
+}
+```
+
+In `SetTitleColor`, restore the brush refresh — but gate it on `activeInHierarchy` so it's a no-op when the group is hidden:
+```csharp
+if (m_BrushesPrefab != null && m_BrushesPrefab.activeInHierarchy) {
+    int favoriteSkin = Mathf.Min(m_StatsService.FavoriteSkin, GameService.m_Skins.Count - 1);
+    m_BrushesPrefab.GetComponent<BrushMainMenu>().Set(GameService.m_Skins[favoriteSkin]);
+}
+```
+
+### Step C — Add `RefreshFeatureVisibility()` to `MainMenuView` (10 min)
+```csharp
+[Header("Feature flag targets")]
+public GameObject m_BoosterButton;          // booster entry point + level label container
+public GameObject m_SkinScreenButton;       // new skin-screen button
+public GameObject m_BrushSelectGroup;       // legacy arrows + 3D brush hero
+
+public void RefreshFeatureVisibility() {
+    bool boosterOn   = PlayerPrefs.GetInt(Constants.c_DebugBoosterModeSave, 1) == 1;
+    bool skinScreenOn = PlayerPrefs.GetInt(Constants.c_DebugSkinSelectionSave, 1) == 1;
+
+    if (m_BoosterButton != null)     m_BoosterButton.SetActive(boosterOn);
+    if (m_SkinScreenButton != null)  m_SkinScreenButton.SetActive(skinScreenOn);
+    if (m_BrushSelectGroup != null)  m_BrushSelectGroup.SetActive(!skinScreenOn);
+}
+```
+
+### Step D — `DebugPanel.cs` (25 min)
+[Scripts/UI/DebugPanel.cs](Draw.ioTest/Draw.ioTest/Assets/Scripts/UI/DebugPanel.cs):
+
+```csharp
+using UnityEngine;
+using UnityEngine.UI;
+
 public class DebugPanel : MonoBehaviour
 {
-    [SerializeField] Animator m_Animator;
-    [SerializeField] Image m_BoosterModeButton;
-    [SerializeField] Image m_SkinSelectionButton;
-    [SerializeField] Sprite m_ToggleOnSprite;
-    [SerializeField] Sprite m_ToggleOffSprite;
+    public Animator m_PanelAnim;
+    public Image    m_BoosterButton;
+    public Image    m_SkinSelectionButton;
+    public Sprite   m_ToggleOnSprite;
+    public Sprite   m_ToggleOffSprite;
 
-    bool m_Visible;
+    private bool m_PanelVisible;
 
-    // Toggle panel open/close (scene-wired button)
-    public void ClickTogglePanel()
+    private bool BoosterEnabled
     {
-        m_Visible = !m_Visible;
-        m_Animator.SetBool("Visible", m_Visible);
+        get { return PlayerPrefs.GetInt(Constants.c_DebugBoosterModeSave, 1) == 1; }
+        set { PlayerPrefs.SetInt(Constants.c_DebugBoosterModeSave, value ? 1 : 0); }
     }
 
-    // Toggle feature flags (scene-wired buttons)
-    public void ClickBoosterMode() { /* write toggle state — pattern TBD */ }
-    public void ClickSkinSelection() { /* write toggle state — pattern TBD */ }
+    private bool SkinSelectionEnabled
+    {
+        get { return PlayerPrefs.GetInt(Constants.c_DebugSkinSelectionSave, 1) == 1; }
+        set { PlayerPrefs.SetInt(Constants.c_DebugSkinSelectionSave, value ? 1 : 0); }
+    }
+
+    private void Awake()
+    {
+        m_PanelVisible = false;
+        m_PanelAnim.SetBool("Visible", m_PanelVisible);
+        RefreshButtonsVisual();
+    }
+
+    public void ClickToggleDebugPanel()
+    {
+        m_PanelVisible = !m_PanelVisible;
+        m_PanelAnim.SetBool("Visible", m_PanelVisible);
+    }
+
+    public void ClickBoosterToggle()
+    {
+        BoosterEnabled = !BoosterEnabled;
+        RefreshButtonsVisual();
+        if (MainMenuView.Instance != null)
+            MainMenuView.Instance.RefreshFeatureVisibility();
+    }
+
+    public void ClickSkinSelectionToggle()
+    {
+        SkinSelectionEnabled = !SkinSelectionEnabled;
+        RefreshButtonsVisual();
+        if (MainMenuView.Instance != null)
+            MainMenuView.Instance.RefreshFeatureVisibility();
+    }
+
+    private void RefreshButtonsVisual()
+    {
+        m_BoosterButton.sprite       = BoosterEnabled       ? m_ToggleOnSprite : m_ToggleOffSprite;
+        m_SkinSelectionButton.sprite = SkinSelectionEnabled ? m_ToggleOnSprite : m_ToggleOffSprite;
+    }
 }
 ```
 
-### Layout
-```
-┌─────────────────────────┐
-│      Debug Menu         │
-│                         │
-│  [Image btn] Booster    │  ← sprite swaps on/off (like vibration)
-│  [Image btn] Skin Sel.  │  ← sprite swaps on/off
-│                         │
-│      [ Close ]          │
-└─────────────────────────┘
-```
+### Step E — Scene/prefab wiring
 
-Animator controller with "Visible" bool parameter — slide in/out, matching SettingsPanel.
+#### E.1 — Already done via YAML
+- Re-wired RightArrow OnClick → `MainMenuView.RightButtonBrush`
+- Re-wired LeftArrow OnClick → `MainMenuView.LeftButtonBrush`
+- Assigned MainMenuView serialized fields: `m_BrushesPrefab` (1043197933159812), `m_BoosterButton` (3731833860446700079), `m_SkinScreenButton` (4677167943824637125), `m_BrushSelectGroup` (1054396209444862)
 
----
+#### E.2 — TODO in Unity Editor (~10 min)
+Easier to do visually than via YAML.
 
-## Step 4: MainMenuView integration
+1. **Duplicate `SettingsPanel`** inside `MainMenuView.prefab` and rename to `DebugPanel`. It already comes with an Animator + slide-in controller + clean RectTransform setup we can repurpose.
+2. **Swap the script**: remove `SettingsPanel` component, add `DebugPanel` component.
+3. **Inside the duplicated panel**:
+   - Delete the vibration button child.
+   - Add **two** Image buttons (booster + skin selection). Label them with TMP text or a small icon. Re-use the vibration on/off sprites (guids `aefdc2723ae1c4c4f90648cf7d422159` / `aaf6f4dce75e542388c3b129e6d07543`) or pick generic toggle sprites.
+   - Wire each button's OnClick:
+     - Booster button → `DebugPanel.ClickBoosterToggle()`
+     - Skin button   → `DebugPanel.ClickSkinSelectionToggle()`
+4. **Wire `DebugPanel` serialized fields**:
+   - `m_PanelAnim` → the Animator on this DebugPanel GameObject
+   - `m_BoosterButton` → the booster Image
+   - `m_SkinSelectionButton` → the skin Image
+   - `m_ToggleOnSprite` / `m_ToggleOffSprite` → the chosen sprite pair
+5. **Add the Debug button on main menu**: clone the existing settings button (top-left gear), reposition (e.g., top-right). Wire its OnClick to `DebugPanel.ClickToggleDebugPanel()`. Reuse any debug-looking sprite or relabel.
+6. **Animator controller**: the duplicated panel already references `SettingsPanel.controller`. That's fine — same slide-in behavior with the `Visible` bool. No new controller needed.
 
-### Reading flags
-How MainMenuView reads the toggle state depends on the pattern chosen (see `PATTERNS_FeatureFlags.md`). Regardless of pattern, the effect is the same:
+### Step F — Verify (15 min)
+Test matrix:
+| Booster | Skin | Expected |
+|---------|------|----------|
+| ON | ON | Candidate's submission (Booster button + new Skin button visible) |
+| ON | OFF | Booster button visible. Old arrows + 3D brush hero shown. New Skin button hidden. |
+| OFF | ON | No Booster button. New Skin button visible. |
+| OFF | OFF | **Original game.** No Booster button. Old arrows + brush hero shown. No new Skin button. |
 
-```csharp
-void RefreshFeatureVisibility()
-{
-    bool boosterOn = /* read flag — pattern TBD */;
-    bool skinScreenOn = /* read flag — pattern TBD */;
-
-    m_BoosterModeButton.SetActive(boosterOn);
-
-    m_SelectSkinButton.SetActive(skinScreenOn);
-    m_LegacyArrowLeft.SetActive(!skinScreenOn);
-    m_LegacyArrowRight.SetActive(!skinScreenOn);
-}
-```
-
-Call `RefreshFeatureVisibility()`:
-- In `OnGamePhaseChanged(MAIN_MENU)` (when returning to menu)
-- When DebugPanel closes (add a callback or just refresh on MainMenuView becoming visible again)
-
-### Debug button placement
-Add a small button in a corner of MainMenuView. Scene-wired to DebugPanel's `ClickTogglePanel()` — same way the existing settings button is wired to SettingsPanel.
-
----
-
-## Step 5: Verify "original state"
-
-When both toggles are off:
-- No "Booster Mode" button on main menu
-- Original left/right arrow skin cycling is shown
-- No booster-only power-ups spawn
-- Game is identical to unmodified project
-
-Test this by toggling both off and playing a full round.
-
----
-
-## Open Decision: Flag-reading pattern
-
-See `PATTERNS_FeatureFlags.md` for full analysis. Decision deferred until Features 1 & 2 are implemented — we'll see what the consumers look like and pick the pattern that causes least friction.
-
----
-
-## Corrections from original plan
-
-| Original plan | Problem | Fix |
-|--------------|---------|-----|
-| `FeatureFlags.cs` static class with events | Foreign pattern — no precedent in project. See `PATTERNS_FeatureFlags.md` | Deferred. Pattern decided after Features 1 & 2 are built |
-| `View<DebugMenuView>` inheriting View\<T> | SettingsPanel (closest pattern) is NOT a View, uses Animator + MonoBehaviour | Follow SettingsPanel: MonoBehaviour + Animator |
-| Unity `Toggle` components | No Toggle used anywhere in the project. Vibration uses Image + sprite swap | Use Image buttons with on/off sprites (matches vibration toggle) |
-| `FeatureFlags.OnFlagsChanged` event | No event pattern for settings. SettingsPanel writes PlayerPrefs directly | Deferred — may or may not need events |
-| Named "DebugMenuView" | Naming inconsistency with SettingsPanel | Renamed to `DebugPanel` (matches SettingsPanel naming) |
-| `boosterToggle.onValueChanged.AddListener` | Toggle-based API doesn't exist here | Button click methods: `ClickBoosterMode()`, `ClickSkinSelection()` |
+For each state, also: enter a Classic match, return to menu, re-open debug panel — flags persist via PlayerPrefs.
 
 ---
 
 ## File Checklist
 
-| File | Type | Location |
-|------|------|----------|
-| Constants.cs | Edit existing | `Scripts/Gameplay/` |
-| `DebugPanel.cs` | SingletonMB\<T> | `Scripts/UI/` |
-| DebugPanel | Scene GameObject | Canvas hierarchy in Game.unity |
-| Animator controller | Animation | `Assets/Animations/` |
-| Toggle on/off sprites | Sprite | `Assets/Sprites/` or reuse existing |
-| MainMenuView.cs | Edit existing | `Scripts/UI/` |
+| File | Type | Notes |
+|------|------|-------|
+| `Constants.cs` | Edit | Add 2 PlayerPrefs keys |
+| `MainMenuView.cs` | Edit | Restore `m_BrushesPrefab` + skin-cycle methods; add `RefreshFeatureVisibility()`; add 3 GameObject refs |
+| `DebugPanel.cs` | New | Mirror SettingsPanel shape |
+| `Game.unity` | Edit | Add DebugPanel scene object + main-menu Debug button |
+| `MainMenuView.prefab` | Edit | Re-wire LeftArrow/RightArrow OnClick; assign new serialized refs |
+| Animator controller | New or reuse | Slide-in for DebugPanel |
+| Toggle sprites | Reuse | Vibration on/off sprites already in project |
 
 ---
 
-## Build Order (all 3 tasks)
+## What we are NOT changing
 
-1. **Constants.cs** — add save keys (5 min)
-2. **DebugPanel** — UI + script + animator (45 min)
-3. **MainMenuView** — debug button + `RefreshFeatureVisibility()` (30 min)
-4. **PowerUp_SpeedBoost + PowerUp_ColorBomb** (45 min)
-5. **BoosterLevelData + BoosterModeConfig** (45 min)
-6. **IGameMode + ClassicGameMode + BoosterGameMode** (1h)
-7. **GameService integration** for game modes (30 min)
-8. **SkinData assets** — create 6 new ones (15 min)
-9. **SkinSelectionScreen + SkinCell** (2h)
-10. **MainMenuView** — skin button + feature flag wiring (30 min)
-11. **Polish + device testing** (1h)
-12. **Record video + build APK** (30 min)
+- `GameService` stays untouched. Booster entry is gated by hiding the UI button, not by an internal feature flag check. If the button is hidden, `StartBoosterMode()` is unreachable from the main menu. Defense-in-depth check inside `GameService` would just add coupling for no real safety gain.
+- `SkinSelectionScreen` stays untouched. Same reasoning — phase entry is only reachable from the now-hidden `OpenSkinScreen` button.
+- No event bus, no static flag class, no service. Two PlayerPrefs keys + a refresh call.
 
-Total: ~8 hours
+---
+
+## Estimate
+~75 min. Slightly over the spec's 1h budget — the over-run is entirely Step B (restoring deleted skin-cycle code), which is necessary because Task 2 removed it from `MainMenuView` rather than gating it.

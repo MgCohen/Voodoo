@@ -18,6 +18,8 @@ public static class Constants
 	public const string         c_PlayerXPSave = "XP";
     public const string         c_PlayerLevelSave = "Lvl";
     public const string         c_VibrationSave = "Vibration";
+    public const string         c_DebugBoosterModeSave    = "DebugBoosterMode";
+    public const string         c_DebugSkinSelectionSave  = "DebugSkinSelection";
 
     // Cohorts
     public const string         c_CohortScalingBombs = "ScalingBombs";

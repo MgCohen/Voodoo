@@ -246,8 +246,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_Navigation:
     m_Mode: 3
     m_WrapAround: 0
@@ -279,7 +279,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114814989594169420}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 114863918100999332}
+        m_TargetAssemblyTypeName: MainMenuView, Assembly-CSharp
+        m_MethodName: RightButtonBrush
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1072472879009786
 GameObject:
   m_ObjectHideFlags: 0
@@ -1397,8 +1409,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_Navigation:
     m_Mode: 3
     m_WrapAround: 0
@@ -1430,7 +1442,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114814989594169420}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 114863918100999332}
+        m_TargetAssemblyTypeName: MainMenuView, Assembly-CSharp
+        m_MethodName: LeftButtonBrush
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1232595212687280
 GameObject:
   m_ObjectHideFlags: 0
@@ -18839,8 +18863,13 @@ MonoBehaviour:
   - {fileID: 114692595092085978}
   m_PointsPerRank: {fileID: 1179986923556148}
   m_RankingView: {fileID: 114299393393301170}
+  m_BrushesPrefab: {fileID: 1043197933159812}
+  m_IdSkin: 0
   m_BoosterLevelText: {fileID: 1638453205461666610}
   m_BoosterMode: {fileID: 11400000, guid: d4924418ac16b304b8bdbc116cbaadb5, type: 2}
+  m_BoosterButton: {fileID: 3731833860446700079}
+  m_SkinScreenButton: {fileID: 4677167943824637125}
+  m_BrushSelectGroup: {fileID: 1054396209444862}
   m_Ratings:
   - BEGINNER
   - AMATEUR
