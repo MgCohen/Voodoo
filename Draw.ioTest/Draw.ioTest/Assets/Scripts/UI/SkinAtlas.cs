@@ -7,7 +7,7 @@ public class SkinAtlas : MonoBehaviour
     public Transform      m_Root;
     public BrushMainMenu  m_SlotPrefab;
     public int            m_Columns       = 3;
-    public int            m_Layer         = 31;
+    public LayerMask      m_Layer         = 1 << 31;
     public int            m_RTWidth       = 512;
     public float          m_CellWorldSize = 3f;
     [Range(0.1f, 1f)] public float m_BrushFit = 0.9f;
@@ -33,12 +33,14 @@ public class SkinAtlas : MonoBehaviour
         m_RT.Create();
 
         m_Camera.targetTexture    = m_RT;
-        m_Camera.cullingMask      = 1 << m_Layer;
+        m_Camera.cullingMask      = m_Layer;
         m_Camera.clearFlags       = CameraClearFlags.SolidColor;
         m_Camera.backgroundColor  = new Color(0f, 0f, 0f, 0f);
         m_Camera.orthographic     = true;
         m_Camera.orthographicSize = Rows * m_CellWorldSize * 0.5f;
         m_Camera.aspect           = (float)m_Columns / Rows;
+
+        int layer = (int)Mathf.Log(m_Layer.value, 2);
 
         for (int i = 0; i < count; i++)
         {
@@ -53,7 +55,8 @@ public class SkinAtlas : MonoBehaviour
 
             slot.Set(_Skins[i]);
             ApplyMenuScale(slot, _Skins[i].Brush);
-            SetLayerRecursive(slot.gameObject, m_Layer);
+            foreach (Renderer r in slot.GetComponentsInChildren<Renderer>(true))
+                r.gameObject.layer = layer;
             m_Slots.Add(slot);
         }
     }
@@ -93,13 +96,6 @@ public class SkinAtlas : MonoBehaviour
     private void OnDestroy()
     {
         Teardown();
-    }
-
-    private static void SetLayerRecursive(GameObject _GO, int _Layer)
-    {
-        _GO.layer = _Layer;
-        foreach (Transform child in _GO.transform)
-            SetLayerRecursive(child.gameObject, _Layer);
     }
 
     // Reads the baked m_MenuScale + m_MenuCenter on BrushData (populated by

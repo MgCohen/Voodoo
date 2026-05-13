@@ -9,6 +9,7 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
     public SkinAtlas      m_Atlas;
     public RectTransform  m_CellParent;
     public SkinCell       m_CellPrefab;
+    public GameObject     m_SettingsButton;
 
     [Header("Hero (direct 3D in scene)")]
     public BrushMainMenu  m_HeroBrush;
@@ -80,6 +81,9 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         AnimateHeroIn();
         AnimateCellsIn();
 
+        if (m_SettingsButton != null)
+            m_SettingsButton.SetActive(false);
+
         Select(Mathf.Clamp(m_StatsService.FavoriteSkin, 0, m_Cells.Count - 1));
         Transition(true);
     }
@@ -88,6 +92,9 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
     {
         m_Atlas.SetActive(false);
         AnimateHeroOut();
+
+        if (m_SettingsButton != null)
+            m_SettingsButton.SetActive(true);
 
         Transition(false);
 
