@@ -78,6 +78,7 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
 
         m_Atlas.SetActive(true);
         AnimateHeroIn();
+        AnimateCellsIn();
 
         Select(Mathf.Clamp(m_StatsService.FavoriteSkin, 0, m_Cells.Count - 1));
         Transition(true);
@@ -89,6 +90,11 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         AnimateHeroOut();
 
         Transition(false);
+
+        // Reset selection memory so the next Open treats it as a fresh entry
+        // — Select() sees m_SelectedSkin < 0, skips the bump branch on the
+        // favorite cell, and all 12 cells stagger in cleanly.
+        m_SelectedSkin = -1;
     }
 
     private void Build()
@@ -101,15 +107,22 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
             SkinCell cell = Instantiate(m_CellPrefab, m_CellParent);
             cell.Setup(i, m_Atlas.Output, m_Atlas.GetUV(i), Select);
             m_Cells.Add(cell);
-
-            // Staggered pop-in on first open.
-            cell.transform.localScale = Vector3.zero;
-            cell.transform.DOScale(Vector3.one, m_CellAppearDuration)
-                .SetDelay(i * m_CellStaggerDelay)
-                .SetEase(Ease.OutBack);
         }
 
         m_Built = true;
+    }
+
+    private void AnimateCellsIn()
+    {
+        for (int i = 0; i < m_Cells.Count; i++)
+        {
+            Transform t = m_Cells[i].transform;
+            t.DOKill();
+            t.localScale = Vector3.zero;
+            t.DOScale(Vector3.one, m_CellAppearDuration)
+                .SetDelay(i * m_CellStaggerDelay)
+                .SetEase(Ease.OutBack);
+        }
     }
 
     private void Select(int _Index)
