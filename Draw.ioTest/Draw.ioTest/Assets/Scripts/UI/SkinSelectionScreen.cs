@@ -38,8 +38,20 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
 
     public void Hide()
     {
-        if (GameService.currentPhase == GamePhase.SKIN_SELECTION)
-            GameService.ChangePhase(GamePhase.MAIN_MENU);
+        if (GameService.currentPhase != GamePhase.SKIN_SELECTION)
+            return;
+
+        // Commit selection BEFORE the phase change. GameService.ChangePhase
+        // runs the MAIN_MENU case synchronously (SetColor reads m_PlayerSkinID)
+        // before firing onGamePhaseChanged, so writes deferred to Close() land
+        // one round trip late.
+        if (m_SelectedSkin >= 0)
+        {
+            m_StatsService.FavoriteSkin = m_SelectedSkin;
+            GameService.m_PlayerSkinID  = m_SelectedSkin;
+        }
+
+        GameService.ChangePhase(GamePhase.MAIN_MENU);
     }
 
     protected override void OnGamePhaseChanged(GamePhase _GamePhase)
@@ -73,12 +85,6 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
 
     private void Close()
     {
-        if (m_SelectedSkin >= 0)
-        {
-            m_StatsService.FavoriteSkin = m_SelectedSkin;
-            GameService.m_PlayerSkinID  = m_SelectedSkin;
-        }
-
         m_Atlas.SetActive(false);
         AnimateHeroOut();
 
