@@ -140,13 +140,26 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
 
         if (m_HeroBrush != null)
         {
+            BrushData brush = GameService.m_Skins[_Index].Brush;
             m_HeroBrush.Set(GameService.m_Skins[_Index]);
-            if (!initial && m_HeroBrush.m_Current != null)
+
+            if (m_HeroBrush.m_Current != null)
             {
-                m_HeroBrush.m_Current.DOKill();
-                m_HeroBrush.m_Current.DOPunchScale(
-                    Vector3.one * m_HeroSwapPunch,
-                    m_HeroSwapDuration, 0, 0).SetEase(Ease.OutSine);
+                // BrushMainMenu.Set parents at localPosition = zero, but the
+                // brush prefab itself has its mesh offset from its root. Apply
+                // the baked m_MenuCenter so the bounds center lands on
+                // m_BrushParent's origin — matches what SkinAtlas does for
+                // cells. Without this, moving the hero rig down still leaves
+                // the brush biased up by the prefab-internal offset.
+                m_HeroBrush.m_Current.localPosition = -brush.m_MenuCenter;
+
+                if (!initial)
+                {
+                    m_HeroBrush.m_Current.DOKill();
+                    m_HeroBrush.m_Current.DOPunchScale(
+                        Vector3.one * m_HeroSwapPunch,
+                        m_HeroSwapDuration, 0, 0).SetEase(Ease.OutSine);
+                }
             }
         }
     }
