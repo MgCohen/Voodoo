@@ -12,6 +12,7 @@ public class SkinCell : MonoBehaviour
     [Header("Selection")]
     public Color    m_BackgroundIdle     = new Color(0.18f, 0.22f, 0.45f, 1f);
     public Color    m_BackgroundSelected = new Color(0.40f, 0.30f, 0.70f, 1f);
+    public float    m_ColorDuration      = 0.2f;
 
     [Header("Bump")]
     public float    m_BumpScale    = 0.15f;
@@ -37,8 +38,15 @@ public class SkinCell : MonoBehaviour
 
     public void SetSelected(bool _Selected, bool _Animate)
     {
+        Color target = _Selected ? m_BackgroundSelected : m_BackgroundIdle;
         if (m_Background != null)
-            m_Background.color = _Selected ? m_BackgroundSelected : m_BackgroundIdle;
+        {
+            m_Background.DOKill();
+            if (_Animate)
+                m_Background.DOColor(target, m_ColorDuration);
+            else
+                m_Background.color = target;
+        }
 
         if (_Selected && _Animate)
         {

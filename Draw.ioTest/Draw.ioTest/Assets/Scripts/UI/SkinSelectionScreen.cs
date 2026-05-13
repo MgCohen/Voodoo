@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
@@ -12,6 +13,16 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
     [Header("Hero (direct 3D in scene)")]
     public BrushMainMenu  m_HeroBrush;
     public GameObject     m_HeroVisuals;
+
+    [Header("Hero anim")]
+    public float          m_HeroAppearDuration = 0.35f;
+    public float          m_HeroExitDuration   = 0.20f;
+    public float          m_HeroSwapPunch      = 0.15f;
+    public float          m_HeroSwapDuration   = 0.35f;
+
+    [Header("Cell anim")]
+    public float          m_CellAppearDuration = 0.3f;
+    public float          m_CellStaggerDelay   = 0.03f;
 
     private IStatsService m_StatsService;
 
@@ -54,10 +65,7 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
             Build();
 
         m_Atlas.SetActive(true);
-        if (m_HeroVisuals != null)
-            m_HeroVisuals.SetActive(true);
-        if (m_HeroBrush != null)
-            m_HeroBrush.gameObject.SetActive(true);
+        AnimateHeroIn();
 
         Select(Mathf.Clamp(m_StatsService.FavoriteSkin, 0, m_Cells.Count - 1));
         Transition(true);
@@ -72,10 +80,7 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         }
 
         m_Atlas.SetActive(false);
-        if (m_HeroVisuals != null)
-            m_HeroVisuals.SetActive(false);
-        if (m_HeroBrush != null)
-            m_HeroBrush.gameObject.SetActive(false);
+        AnimateHeroOut();
 
         Transition(false);
     }
@@ -90,6 +95,12 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
             SkinCell cell = Instantiate(m_CellPrefab, m_CellParent);
             cell.Setup(i, m_Atlas.Output, m_Atlas.GetUV(i), Select);
             m_Cells.Add(cell);
+
+            // Staggered pop-in on first open.
+            cell.transform.localScale = Vector3.zero;
+            cell.transform.DOScale(Vector3.one, m_CellAppearDuration)
+                .SetDelay(i * m_CellStaggerDelay)
+                .SetEase(Ease.OutBack);
         }
 
         m_Built = true;
@@ -103,12 +114,52 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         bool initial = m_SelectedSkin < 0;
 
         if (m_SelectedSkin >= 0 && m_SelectedSkin < m_Cells.Count && m_SelectedSkin != _Index)
-            m_Cells[m_SelectedSkin].SetSelected(false, false);
+            m_Cells[m_SelectedSkin].SetSelected(false, !initial);
 
         m_SelectedSkin = _Index;
         m_Cells[_Index].SetSelected(true, !initial);
 
         if (m_HeroBrush != null)
+        {
             m_HeroBrush.Set(GameService.m_Skins[_Index]);
+            if (!initial && m_HeroBrush.m_Current != null)
+            {
+                m_HeroBrush.m_Current.DOKill();
+                m_HeroBrush.m_Current.DOPunchScale(
+                    Vector3.one * m_HeroSwapPunch,
+                    m_HeroSwapDuration, 0, 0).SetEase(Ease.OutSine);
+            }
+        }
+    }
+
+    private void AnimateHeroIn()
+    {
+        ScaleIn(m_HeroVisuals);
+        ScaleIn(m_HeroBrush != null ? m_HeroBrush.gameObject : null);
+    }
+
+    private void AnimateHeroOut()
+    {
+        ScaleOut(m_HeroVisuals);
+        ScaleOut(m_HeroBrush != null ? m_HeroBrush.gameObject : null);
+    }
+
+    private void ScaleIn(GameObject _Go)
+    {
+        if (_Go == null) return;
+        _Go.SetActive(true);
+        Transform t = _Go.transform;
+        t.DOKill();
+        t.localScale = Vector3.zero;
+        t.DOScale(Vector3.one, m_HeroAppearDuration).SetEase(Ease.OutBack);
+    }
+
+    private void ScaleOut(GameObject _Go)
+    {
+        if (_Go == null) return;
+        Transform t = _Go.transform;
+        t.DOKill();
+        t.DOScale(Vector3.zero, m_HeroExitDuration).SetEase(Ease.InBack)
+            .OnComplete(() => { if (_Go != null) _Go.SetActive(false); });
     }
 }
