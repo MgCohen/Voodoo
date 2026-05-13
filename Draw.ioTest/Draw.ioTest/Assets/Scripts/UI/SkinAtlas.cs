@@ -7,7 +7,7 @@ public class SkinAtlas : MonoBehaviour
     public Transform      m_Root;
     public BrushMainMenu  m_SlotPrefab;
     public int            m_Columns       = 3;
-    public LayerMask      m_Layer         = 1 << 31;
+    public LayerMask      m_Layer         = 1 << 10;
     public int            m_RTWidth       = 512;
     public float          m_CellWorldSize = 3f;
     [Range(0.1f, 1f)] public float m_BrushFit = 0.9f;
@@ -40,11 +40,7 @@ public class SkinAtlas : MonoBehaviour
         m_Camera.orthographicSize = Rows * m_CellWorldSize * 0.5f;
         m_Camera.aspect           = (float)m_Columns / Rows;
 
-        // Cast through uint: m_Layer.value with bit 31 set is int.MinValue
-        // (negative), and Mathf.Log of a negative is NaN — which Mono casts
-        // to Int32.MinValue. As uint, bit 31 reads as 2147483648 and Log
-        // gives 31 correctly.
-        int layer = (int)Mathf.Log((uint)m_Layer.value, 2);
+        int layer = (int)Mathf.Log(m_Layer.value, 2);
 
         for (int i = 0; i < count; i++)
         {
