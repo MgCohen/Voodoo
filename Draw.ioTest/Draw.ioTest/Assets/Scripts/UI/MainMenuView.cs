@@ -16,9 +16,6 @@ public class MainMenuView : View<MainMenuView>
     public List<Image> m_ColoredImages;
     public List<Text> m_ColoredTexts;
 
-    public GameObject m_BrushGroundLight;
-    public GameObject m_BrushesPrefab;
-    public int m_IdSkin = 0;
     public GameObject m_PointsPerRank;
     public RankingView m_RankingView;
 
@@ -36,13 +33,6 @@ public class MainMenuView : View<MainMenuView>
     public void Construct(IStatsService statsService)
     {
         m_StatsService = statsService;
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-
-        m_IdSkin = m_StatsService.FavoriteSkin;
     }
 
     public void OnPlayButton()
@@ -71,23 +61,12 @@ public class MainMenuView : View<MainMenuView>
         switch (_GamePhase)
         {
             case GamePhase.MAIN_MENU:
-                m_BrushGroundLight.SetActive(true);
                 RefreshBoosterLevelLabel();
                 Transition(true);
                 break;
 
             case GamePhase.LOADING:
-                m_BrushGroundLight.SetActive(false);
-
-                    m_BrushesPrefab.SetActive(false);
-
-                if (m_Visible)
-                    Transition(false);
-                break;
-
             case GamePhase.SKIN_SELECTION:
-                m_BrushGroundLight.SetActive(false);
-                m_BrushesPrefab.SetActive(false);
                 if (m_Visible)
                     Transition(false);
                 break;
@@ -96,9 +75,6 @@ public class MainMenuView : View<MainMenuView>
 
     public void SetTitleColor(Color _Color)
     {
-        m_BrushesPrefab.SetActive(true);
-        int favoriteSkin = Mathf.Min(m_StatsService.FavoriteSkin, GameService.m_Skins.Count - 1);
-        m_BrushesPrefab.GetComponent<BrushMainMenu>().Set(GameService.m_Skins[favoriteSkin]);
         string playerName = m_StatsService.GetNickname();
 
         if (playerName != null)
@@ -133,28 +109,5 @@ public class MainMenuView : View<MainMenuView>
     {
         if (GameService.currentPhase == GamePhase.MAIN_MENU)
             GameService.ChangePhase(GamePhase.SKIN_SELECTION);
-    }
-
-    public void LeftButtonBrush()
-    {
-        ChangeBrush(m_IdSkin - 1);
-    }
-
-    public void RightButtonBrush()
-    {
-        ChangeBrush(m_IdSkin + 1);
-    }
-
-    public void ChangeBrush(int _NewBrush)
-    {
-        _NewBrush = Mathf.Clamp(_NewBrush, 0, GameService.m_Skins.Count);
-        m_IdSkin = _NewBrush;
-        if (m_IdSkin >= GameService.m_Skins.Count)
-            m_IdSkin = 0;
-        GameService.m_PlayerSkinID = m_IdSkin;
-        int favoriteSkin = Mathf.Min(m_StatsService.FavoriteSkin, GameService.m_Skins.Count - 1);
-        m_BrushesPrefab.GetComponent<BrushMainMenu>().Set(GameService.m_Skins[favoriteSkin]);
-        m_StatsService.FavoriteSkin = m_IdSkin;
-        GameService.SetColor(GameService.ComputeCurrentPlayerColor(true, 0));
     }
 }

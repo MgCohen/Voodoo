@@ -1030,6 +1030,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1393614798}
     m_Modifications:
+    - target: {fileID: 1054396209444862, guid: ade9dc1200e32bb45ad4a7d1f3cda793, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1879199141287384, guid: ade9dc1200e32bb45ad4a7d1f3cda793, type: 3}
       propertyPath: m_Name
       value: MainMenuView
@@ -2141,6 +2145,10 @@ PrefabInstance:
     - target: {fileID: 301000000000001, guid: f1e2d3c4b5a6071829304152637485a6, type: 3}
       propertyPath: m_Name
       value: SkinSelectionScreen
+      objectReference: {fileID: 0}
+    - target: {fileID: 301000000000079, guid: f1e2d3c4b5a6071829304152637485a6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 302000000000001, guid: f1e2d3c4b5a6071829304152637485a6, type: 3}
       propertyPath: m_Pivot.x

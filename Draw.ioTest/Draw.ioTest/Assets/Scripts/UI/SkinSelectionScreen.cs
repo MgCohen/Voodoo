@@ -5,14 +5,13 @@ using Zenject;
 
 public class SkinSelectionScreen : View<SkinSelectionScreen>
 {
-    [SerializeField] private SkinAtlas      m_Atlas;
-    [SerializeField] private RectTransform  m_CellParent;
-    [SerializeField] private SkinCell       m_CellPrefab;
-    [SerializeField] private Color          m_CellBackgroundColor = new Color(0.18f, 0.22f, 0.45f, 1f);
+    public SkinAtlas      m_Atlas;
+    public RectTransform  m_CellParent;
+    public SkinCell       m_CellPrefab;
 
     [Header("Hero (direct 3D in scene)")]
-    [SerializeField] private BrushMainMenu  m_HeroBrush;
-    [SerializeField] private GameObject     m_HeroVisuals;
+    public BrushMainMenu  m_HeroBrush;
+    public GameObject     m_HeroVisuals;
 
     private IStatsService m_StatsService;
 
@@ -90,7 +89,6 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         {
             SkinCell cell = Instantiate(m_CellPrefab, m_CellParent);
             cell.Setup(i, m_Atlas.Output, m_Atlas.GetUV(i), Select);
-            cell.SetBackgroundColor(m_CellBackgroundColor);
             m_Cells.Add(cell);
         }
 
@@ -102,11 +100,15 @@ public class SkinSelectionScreen : View<SkinSelectionScreen>
         if (_Index < 0 || _Index >= m_Cells.Count)
             return;
 
-        m_SelectedSkin = _Index;
+        bool initial = m_SelectedSkin < 0;
 
-        SkinData skin = GameService.m_Skins[_Index];
+        if (m_SelectedSkin >= 0 && m_SelectedSkin < m_Cells.Count && m_SelectedSkin != _Index)
+            m_Cells[m_SelectedSkin].SetSelected(false, false);
+
+        m_SelectedSkin = _Index;
+        m_Cells[_Index].SetSelected(true, !initial);
 
         if (m_HeroBrush != null)
-            m_HeroBrush.Set(skin);
+            m_HeroBrush.Set(GameService.m_Skins[_Index]);
     }
 }

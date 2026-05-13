@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class SkinAtlas : MonoBehaviour
 {
-    [SerializeField] private Camera         m_Camera;
-    [SerializeField] private Transform      m_Root;
-    [SerializeField] private BrushMainMenu  m_SlotPrefab;
-    [SerializeField] private int            m_Columns       = 3;
-    [SerializeField] private int            m_Layer         = 31;
-    [SerializeField] private int            m_RTWidth       = 512;
-    [SerializeField] private float          m_CellWorldSize = 3f;
-    [SerializeField, Range(0.1f, 1f)] private float m_BrushFit = 0.9f;
+    public Camera         m_Camera;
+    public Transform      m_Root;
+    public BrushMainMenu  m_SlotPrefab;
+    public int            m_Columns       = 3;
+    public int            m_Layer         = 31;
+    public int            m_RTWidth       = 512;
+    public float          m_CellWorldSize = 3f;
+    [Range(0.1f, 1f)] public float m_BrushFit = 0.9f;
 
     public Texture Output => m_RT;
     public int     Cols   => m_Columns;
@@ -52,7 +52,7 @@ public class SkinAtlas : MonoBehaviour
                 0f);
 
             slot.Set(_Skins[i]);
-            FitBrushToCell(slot);
+            ApplyMenuScale(slot, _Skins[i].Brush);
             SetLayerRecursive(slot.gameObject, m_Layer);
             m_Slots.Add(slot);
         }
@@ -102,44 +102,16 @@ public class SkinAtlas : MonoBehaviour
             SetLayerRecursive(child.gameObject, _Layer);
     }
 
-    // Per-brush auto-fit. Walks every visible Renderer on the spawned brush,
-    // builds the world-space AABB from each one's .bounds, then scales +
-    // recentres the brush so its largest dimension fills cellWorldSize *
-    // brushFit. Using the Renderer base class covers MeshRenderer (Brush_1,
-    // Brush_3) and SkinnedMeshRenderer (Brush_2, Brush_4) plus any future
-    // type, without us having to remember to add a separate pass. Particle
-    // renderers are excluded because their bounds cover simulation space
-    // rather than the visible particles.
-    private void FitBrushToCell(BrushMainMenu _Slot)
+    // Reads the baked m_MenuScale + m_MenuCenter on BrushData (populated by
+    // BrushData.OnValidate at edit time) and applies them so each brush fits
+    // its cell at the same target size regardless of authored prefab scale.
+    private void ApplyMenuScale(BrushMainMenu _Slot, BrushData _Brush)
     {
-        if (_Slot.m_Current == null)
+        if (_Slot.m_Current == null || _Brush == null)
             return;
 
-        Bounds bounds = default;
-        bool   hasAny = false;
-
-        Renderer[] renderers = _Slot.m_Current.GetComponentsInChildren<Renderer>();
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            Renderer r = renderers[i];
-            if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
-            if (r is ParticleSystemRenderer) continue;
-
-            if (!hasAny) { bounds = r.bounds; hasAny = true; }
-            else         bounds.Encapsulate(r.bounds);
-        }
-
-        if (!hasAny)
-            return;
-
-        float maxDim = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
-        if (maxDim < 0.0001f)
-            return;
-
-        float   scale  = (m_CellWorldSize * m_BrushFit) / maxDim;
-        Vector3 offset = bounds.center - _Slot.m_Current.position;
-
-        _Slot.m_Current.localPosition = -offset * scale;
+        float scale = _Brush.m_MenuScale * m_CellWorldSize * m_BrushFit;
         _Slot.m_Current.localScale    = Vector3.one * scale;
+        _Slot.m_Current.localPosition = -_Brush.m_MenuCenter * scale;
     }
 }
