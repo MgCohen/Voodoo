@@ -279,19 +279,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114814989594169420}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 114863918100999332}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: RightButtonBrush
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &1072472879009786
 GameObject:
   m_ObjectHideFlags: 0
@@ -1442,19 +1430,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114814989594169420}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 114863918100999332}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: LeftButtonBrush
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &1232595212687280
 GameObject:
   m_ObjectHideFlags: 0
