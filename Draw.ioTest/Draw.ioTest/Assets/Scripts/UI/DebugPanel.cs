@@ -3,15 +3,11 @@ using UnityEngine.UI;
 
 public class DebugPanel : MonoBehaviour
 {
-    public Animator  m_PanelAnim;
-    public Image     m_BoosterButton;
-    public Image     m_SkinSelectionButton;
-    public Sprite    m_ToggleOnSprite;
-    public Sprite    m_ToggleOffSprite;
-
-    // Main-menu button that opens this panel. Disabled together with the
-    // panel in release builds so the debug menu has no entry point at all.
-    public GameObject m_DebugEntryButton;
+    public Animator m_PanelAnim;
+    public Image    m_BoosterButton;
+    public Image    m_SkinSelectionButton;
+    public Sprite   m_ToggleOnSprite;
+    public Sprite   m_ToggleOffSprite;
 
     private bool m_PanelVisible;
 
@@ -29,17 +25,6 @@ public class DebugPanel : MonoBehaviour
 
     private void Awake()
     {
-        // Debug.isDebugBuild is true in the Editor and in Development Build
-        // APKs, false in release builds. Reviewers receive a Development
-        // Build so they can toggle features; shipped releases hide the menu
-        // entirely.
-        if (!Debug.isDebugBuild)
-        {
-            if (m_DebugEntryButton != null) m_DebugEntryButton.SetActive(false);
-            gameObject.SetActive(false);
-            return;
-        }
-
         m_PanelVisible = false;
         m_PanelAnim.SetBool("Visible", m_PanelVisible);
         RefreshButtonsVisual();

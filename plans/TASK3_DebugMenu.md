@@ -39,10 +39,8 @@ Why not the other options:
 ### 3. Defaults
 Both features default **ON** (`PlayerPrefs.GetInt(key, 1)`). Reviewer's fresh install sees the candidate's full submission. They toggle OFF to verify the original state.
 
-### 3b. Dev-only gating
-A debug menu has no business in a release build of a "fully released game". Gate it on `Debug.isDebugBuild` — true in the Editor + Development Build APKs, false in release.
-
-`DebugPanel.Awake()` self-disables when `!Debug.isDebugBuild`, and also disables the main-menu entry button via a serialized `m_DebugEntryButton` ref. Reviewer must receive a **Development Build APK** (Player Settings → Build → "Development Build" checkbox) so they can toggle features. A release-flagged APK ships with no debug menu and the candidate's features behave as their PlayerPrefs defaults dictate (both ON).
+### 3b. No build-type gating
+The spec explicitly asks for a Debug Menu "accessible via the Main Menu" and grades on "clarity and ease of use". Gating on `Debug.isDebugBuild` would force a Development Build APK for the menu to be reachable — a fragile foot-gun for no spec-driven gain. The menu is always accessible. In a real shipping context one would gate it; calling that out in the readme/video is sufficient for this test.
 
 ### 4. Refresh flow
 - `MainMenuView.Awake()` calls `RefreshFeatureVisibility()` once.
@@ -201,7 +199,6 @@ Easier to do visually than via YAML.
    - `m_BoosterButton` → the booster Image
    - `m_SkinSelectionButton` → the skin Image
    - `m_ToggleOnSprite` / `m_ToggleOffSprite` → the chosen sprite pair
-   - `m_DebugEntryButton` → the main-menu Debug button (so it disappears in release builds)
 5. **Add the Debug button on main menu**: clone the existing settings button (top-left gear), reposition (e.g., top-right). Wire its OnClick to `DebugPanel.ClickToggleDebugPanel()`. Reuse any debug-looking sprite or relabel.
 6. **Animator controller**: the duplicated panel already references `SettingsPanel.controller`. That's fine — same slide-in behavior with the `Visible` bool. No new controller needed.
 
