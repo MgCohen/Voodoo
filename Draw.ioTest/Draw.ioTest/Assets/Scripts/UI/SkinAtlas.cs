@@ -40,7 +40,10 @@ public class SkinAtlas : MonoBehaviour
         m_Camera.orthographicSize = Rows * m_CellWorldSize * 0.5f;
         m_Camera.aspect           = (float)m_Columns / Rows;
 
-        int layer = (int)Mathf.Log(m_Layer.value, 2);
+        // (uint) cast handles legacy int values stored before the field type
+        // change to LayerMask, plus the sign-bit-31 edge case where
+        // m_Layer.value reads negative.
+        int layer = (int)Mathf.Log((uint)m_Layer.value, 2);
 
         for (int i = 0; i < count; i++)
         {
