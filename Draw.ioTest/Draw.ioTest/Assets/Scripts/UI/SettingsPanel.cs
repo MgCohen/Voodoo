@@ -57,7 +57,6 @@ public class SettingsPanel : MonoBehaviour
 
     public void ClickDebugButton()
     {
-        Debug.Log("[SettingsPanel] ClickDebugButton fired. m_DebugPanel=" + (m_DebugPanel != null ? m_DebugPanel.name : "NULL"));
         if (m_DebugPanel != null)
             m_DebugPanel.ClickToggleDebugPanel();
     }

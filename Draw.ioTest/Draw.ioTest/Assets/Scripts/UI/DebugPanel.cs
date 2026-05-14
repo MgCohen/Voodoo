@@ -40,25 +40,27 @@ public class DebugPanel : MonoBehaviour
 
     public void ClickToggleDebugPanel()
     {
-        Debug.Log("[DebugPanel] ClickToggleDebugPanel. m_Visible=" + m_Visible + " m_Group=" + (m_Group != null) + " m_Panel=" + (m_Panel != null));
         if (m_Visible) Close();
         else            Open();
     }
 
     private void Open()
     {
+        // Defensive: if someone disables this GameObject in the scene, Awake
+        // never ran and the panel sits at the prefab's alpha=1 / scale=1.
+        // Reactivate + reset the starting state so the fade-in animates from
+        // hidden every time.
+        if (!gameObject.activeSelf)
+            gameObject.SetActive(true);
+        m_Group.alpha = 0f;
+        m_Panel.localScale = Vector3.zero;
+
         m_Visible = true;
         m_Group.blocksRaycasts = true;
         m_Group.DOKill();
         m_Panel.DOKill();
         m_Group.DOFade(1f, m_FadeDuration).OnComplete(() => m_Group.interactable = true);
         m_Panel.DOScale(Vector3.one, m_ScaleDuration).SetEase(Ease.OutBack);
-
-        Debug.Log("[DebugPanel] Open. self.active=" + gameObject.activeInHierarchy
-            + " self.parent=" + (transform.parent != null ? transform.parent.name : "NONE")
-            + " group.alpha=" + m_Group.alpha
-            + " panel.scale=" + m_Panel.localScale
-            + " panel.parent=" + (m_Panel.parent != null ? m_Panel.parent.name : "NONE"));
     }
 
     private void Close()
