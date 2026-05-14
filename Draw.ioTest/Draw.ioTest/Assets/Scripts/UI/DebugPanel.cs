@@ -40,6 +40,7 @@ public class DebugPanel : MonoBehaviour
 
     public void ClickToggleDebugPanel()
     {
+        Debug.Log("[DebugPanel] ClickToggleDebugPanel. m_Visible=" + m_Visible + " m_Group=" + (m_Group != null) + " m_Panel=" + (m_Panel != null));
         if (m_Visible) Close();
         else            Open();
     }
