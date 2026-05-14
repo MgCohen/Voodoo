@@ -1,15 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class DebugPanel : MonoBehaviour
 {
-    public Animator m_PanelAnim;
-    public Image    m_BoosterButton;
-    public Image    m_SkinSelectionButton;
-    public Sprite   m_ToggleOnSprite;
-    public Sprite   m_ToggleOffSprite;
+    public CanvasGroup    m_Group;
+    public RectTransform  m_Panel;
+    public Image          m_BoosterButton;
+    public Image          m_SkinSelectionButton;
+    public Sprite         m_ToggleOnSprite;
+    public Sprite         m_ToggleOffSprite;
 
-    private bool m_PanelVisible;
+    public float          m_FadeDuration  = 0.2f;
+    public float          m_ScaleDuration = 0.25f;
+
+    private bool m_Visible;
 
     private bool BoosterEnabled
     {
@@ -25,15 +30,38 @@ public class DebugPanel : MonoBehaviour
 
     private void Awake()
     {
-        m_PanelVisible = false;
-        m_PanelAnim.SetBool("Visible", m_PanelVisible);
+        m_Visible = false;
+        m_Group.alpha = 0f;
+        m_Group.interactable = false;
+        m_Group.blocksRaycasts = false;
+        m_Panel.localScale = Vector3.zero;
         RefreshButtonsVisual();
     }
 
     public void ClickToggleDebugPanel()
     {
-        m_PanelVisible = !m_PanelVisible;
-        m_PanelAnim.SetBool("Visible", m_PanelVisible);
+        if (m_Visible) Close();
+        else            Open();
+    }
+
+    private void Open()
+    {
+        m_Visible = true;
+        m_Group.blocksRaycasts = true;
+        m_Group.DOKill();
+        m_Panel.DOKill();
+        m_Group.DOFade(1f, m_FadeDuration).OnComplete(() => m_Group.interactable = true);
+        m_Panel.DOScale(Vector3.one, m_ScaleDuration).SetEase(Ease.OutBack);
+    }
+
+    private void Close()
+    {
+        m_Visible = false;
+        m_Group.interactable = false;
+        m_Group.DOKill();
+        m_Panel.DOKill();
+        m_Group.DOFade(0f, m_FadeDuration).OnComplete(() => m_Group.blocksRaycasts = false);
+        m_Panel.DOScale(Vector3.zero, m_ScaleDuration).SetEase(Ease.InBack);
     }
 
     public void ClickBoosterToggle()

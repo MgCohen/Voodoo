@@ -183,24 +183,24 @@ public class DebugPanel : MonoBehaviour
 - Re-wired LeftArrow OnClick → `MainMenuView.LeftButtonBrush`
 - Assigned MainMenuView serialized fields: `m_BrushesPrefab` (1043197933159812), `m_BoosterButton` (3731833860446700079), `m_SkinScreenButton` (4677167943824637125), `m_BrushSelectGroup` (1054396209444862)
 
-#### E.2 — TODO in Unity Editor (~10 min)
-Easier to do visually than via YAML.
+#### E.2 — DebugPanel prefab authored (DOTween-driven)
+[Prefabs/UI/DebugPanel.prefab](Draw.ioTest/Draw.ioTest/Assets/Prefabs/UI/DebugPanel.prefab) is a self-contained UI panel. Open/close uses `DOTween` (CanvasGroup fade + inner-panel scale with `OutBack`/`InBack`) instead of an Animator — matches the project's animation house style (`SkinSelectionScreen`, `SkinCell`).
 
-1. **Duplicate `SettingsPanel`** inside `MainMenuView.prefab` and rename to `DebugPanel`. It already comes with an Animator + slide-in controller + clean RectTransform setup we can repurpose.
-2. **Swap the script**: remove `SettingsPanel` component, add `DebugPanel` component.
-3. **Inside the duplicated panel**:
-   - Delete the vibration button child.
-   - Add **two** Image buttons (booster + skin selection). Label them with TMP text or a small icon. Re-use the vibration on/off sprites (guids `aefdc2723ae1c4c4f90648cf7d422159` / `aaf6f4dce75e542388c3b129e6d07543`) or pick generic toggle sprites.
-   - Wire each button's OnClick:
-     - Booster button → `DebugPanel.ClickBoosterToggle()`
-     - Skin button   → `DebugPanel.ClickSkinSelectionToggle()`
-4. **Wire `DebugPanel` serialized fields**:
-   - `m_PanelAnim` → the Animator on this DebugPanel GameObject
-   - `m_BoosterButton` → the booster Image
-   - `m_SkinSelectionButton` → the skin Image
-   - `m_ToggleOnSprite` / `m_ToggleOffSprite` → the chosen sprite pair
-5. **Add the Debug button on main menu**: clone the existing settings button (top-left gear), reposition (e.g., top-right). Wire its OnClick to `DebugPanel.ClickToggleDebugPanel()`. Reuse any debug-looking sprite or relabel.
-6. **Animator controller**: the duplicated panel already references `SettingsPanel.controller`. That's fine — same slide-in behavior with the `Visible` bool. No new controller needed.
+Structure:
+- `DebugPanel` root — full-screen RectTransform, CanvasGroup, DebugPanel script
+  - `Backdrop` — semi-transparent black full-screen Image, blocks raycasts
+  - `Panel` — centered 700×800 dark-grey panel
+    - `Title` — "DEBUG MENU"
+    - `BoosterRow` — "Booster Mode" label + toggle Image (sprite swap)
+    - `SkinRow` — "Skin Selection" label + toggle Image (sprite swap)
+    - `CloseButton` — "CLOSE" button → `ClickToggleDebugPanel()`
+
+Toggle sprites reuse the vibration on/off PNGs (`Picto_Vibreation` / `Picto_Vibreation_2`). Cosmetic only — swap for dedicated debug toggle art if desired.
+
+#### E.3 — TODO in Unity Editor (~2 min)
+1. **Drag `DebugPanel.prefab` into the scene's main Canvas** in `Game.unity` (same Canvas that hosts `MainMenuView`). It should sit alongside `MainMenuView` as a sibling — the panel is hidden via `CanvasGroup.alpha = 0` + `Panel.localScale = 0` in `Awake`.
+2. **Add a Debug button on the main menu** (clone the existing settings gear in the top-left, reposition to top-right or wherever). Wire its OnClick to the scene's `DebugPanel.ClickToggleDebugPanel()`.
+3. Done. The prefab's own internal wiring (toggle buttons, close, sprite refs) is already complete.
 
 ### Step F — Verify (15 min)
 Test matrix:
