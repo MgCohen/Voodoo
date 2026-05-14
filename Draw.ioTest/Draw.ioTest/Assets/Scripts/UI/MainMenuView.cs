@@ -57,7 +57,19 @@ public class MainMenuView : View<MainMenuView>
 
         if (m_BoosterButton != null)    m_BoosterButton.SetActive(boosterOn);
         if (m_SkinScreenButton != null) m_SkinScreenButton.SetActive(skinScreenOn);
-        if (m_BrushSelectGroup != null) m_BrushSelectGroup.SetActive(!skinScreenOn);
+        if (m_BrushSelectGroup != null)
+        {
+            m_BrushSelectGroup.SetActive(!skinScreenOn);
+            // When re-activating the legacy hero, sync its mesh/color to
+            // whatever the latest FavoriteSkin is — otherwise it shows
+            // whatever was last Set() on it (often the initial-load skin).
+            if (!skinScreenOn && m_BrushesPrefab != null && m_StatsService != null && GameService != null && GameService.m_Skins != null && GameService.m_Skins.Count > 0)
+            {
+                int favoriteSkin = Mathf.Clamp(m_StatsService.FavoriteSkin, 0, GameService.m_Skins.Count - 1);
+                m_IdSkin = favoriteSkin;
+                m_BrushesPrefab.GetComponent<BrushMainMenu>().Set(GameService.m_Skins[favoriteSkin]);
+            }
+        }
     }
 
     public void LeftButtonBrush()  { ChangeBrush(m_IdSkin - 1); }
