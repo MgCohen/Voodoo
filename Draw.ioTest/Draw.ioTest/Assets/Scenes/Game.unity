@@ -1008,6 +1008,18 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 553724645}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &553724647 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 100004, guid: d8c2f3a59e4b5e86b9caf1c2d3e4f5b6,
+    type: 3}
+  m_PrefabInstance: {fileID: 553724645}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7a1e2b48d3f4c75a8b9e0f1c2d3e4a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &559951454
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1020,6 +1032,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainMenuView
       objectReference: {fileID: 0}
+    - target: {fileID: 114717046978914388, guid: ade9dc1200e32bb45ad4a7d1f3cda793,
+        type: 3}
+      propertyPath: m_DebugPanel
+      value: 
+      objectReference: {fileID: 553724647}
     - target: {fileID: 114863918100999332, guid: ade9dc1200e32bb45ad4a7d1f3cda793,
         type: 3}
       propertyPath: m_ColoredImages.Array.size
