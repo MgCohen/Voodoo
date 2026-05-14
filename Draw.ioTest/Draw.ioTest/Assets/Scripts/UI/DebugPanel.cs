@@ -8,8 +8,8 @@ public class DebugPanel : MonoBehaviour
     public RectTransform  m_Panel;
     public Image          m_BoosterButton;
     public Image          m_SkinSelectionButton;
-    public Sprite         m_ToggleOnSprite;
-    public Sprite         m_ToggleOffSprite;
+    public Color          m_ToggleOnColor  = new Color(0.30f, 0.78f, 0.42f, 1f);
+    public Color          m_ToggleOffColor = new Color(0.30f, 0.30f, 0.35f, 1f);
 
     public float          m_FadeDuration  = 0.2f;
     public float          m_ScaleDuration = 0.25f;
@@ -121,7 +121,7 @@ public class DebugPanel : MonoBehaviour
 
     private void RefreshButtonsVisual()
     {
-        m_BoosterButton.sprite       = BoosterEnabled       ? m_ToggleOnSprite : m_ToggleOffSprite;
-        m_SkinSelectionButton.sprite = SkinSelectionEnabled ? m_ToggleOnSprite : m_ToggleOffSprite;
+        m_BoosterButton.color       = BoosterEnabled       ? m_ToggleOnColor : m_ToggleOffColor;
+        m_SkinSelectionButton.color = SkinSelectionEnabled ? m_ToggleOnColor : m_ToggleOffColor;
     }
 }
