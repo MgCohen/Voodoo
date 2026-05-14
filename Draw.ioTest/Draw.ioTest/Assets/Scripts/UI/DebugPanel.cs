@@ -53,6 +53,12 @@ public class DebugPanel : MonoBehaviour
         m_Panel.DOKill();
         m_Group.DOFade(1f, m_FadeDuration).OnComplete(() => m_Group.interactable = true);
         m_Panel.DOScale(Vector3.one, m_ScaleDuration).SetEase(Ease.OutBack);
+
+        Debug.Log("[DebugPanel] Open. self.active=" + gameObject.activeInHierarchy
+            + " self.parent=" + (transform.parent != null ? transform.parent.name : "NONE")
+            + " group.alpha=" + m_Group.alpha
+            + " panel.scale=" + m_Panel.localScale
+            + " panel.parent=" + (m_Panel.parent != null ? m_Panel.parent.name : "NONE"));
     }
 
     private void Close()
