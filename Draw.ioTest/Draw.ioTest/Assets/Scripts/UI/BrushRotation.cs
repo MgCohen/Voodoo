@@ -15,6 +15,9 @@ public class BrushRotation : MonoBehaviour
 
 	void Update ()
 	{
-		m_Transform.RotateAround(m_Transform.position, m_Transform.up, Time.deltaTime * 90f);
+		// Rotate(axis, angle) only touches rotation. RotateAround(pos, axis, angle)
+		// here was a no-op pivot — but it still accumulated floating-point error
+		// in position every frame, which is visible after a long-running match.
+		m_Transform.Rotate(Vector3.up, Time.deltaTime * 90f, Space.Self);
 	}
 }

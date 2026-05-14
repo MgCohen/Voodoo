@@ -53,7 +53,6 @@ public class SkinAtlas : MonoBehaviour
 
             slot.Set(_Skins[i]);
             ApplyMenuScale(slot, _Skins[i].Brush);
-            LayerMask mask = new LayerMask();
             SetLayerRecursive(slot.gameObject, m_Layer);
             m_Slots.Add(slot);
         }
