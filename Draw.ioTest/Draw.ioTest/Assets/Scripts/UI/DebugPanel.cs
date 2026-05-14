@@ -46,14 +46,12 @@ public class DebugPanel : MonoBehaviour
 
     private void Open()
     {
-        Debug.Log("[DebugPanel] Open. before activeSelf=" + gameObject.activeSelf + " activeInHierarchy=" + gameObject.activeInHierarchy);
         // Defensive: if someone disables this GameObject in the scene, Awake
         // never ran and the panel sits at the prefab's alpha=1 / scale=1.
         // Reactivate + reset the starting state so the fade-in animates from
         // hidden every time.
         if (!gameObject.activeSelf)
             gameObject.SetActive(true);
-        Debug.Log("[DebugPanel] Open. after  activeSelf=" + gameObject.activeSelf + " activeInHierarchy=" + gameObject.activeInHierarchy);
         m_Group.alpha = 0f;
         m_Panel.localScale = Vector3.zero;
 
@@ -63,6 +61,13 @@ public class DebugPanel : MonoBehaviour
         m_Panel.DOKill();
         m_Group.DOFade(1f, m_FadeDuration).OnComplete(() => m_Group.interactable = true);
         m_Panel.DOScale(Vector3.one, m_ScaleDuration).SetEase(Ease.OutBack);
+
+        // The main Canvas is Screen Space - Camera, so 3D objects closer to
+        // the camera than the canvas plane (BrushSelect's brush hero) render
+        // in front of UI. Hide that group while the debug panel is open so
+        // it doesn't punch through our backdrop. Close() restores it via the
+        // flag refresh.
+        SuppressLegacyBrushHero(true);
     }
 
     private void Close()
@@ -73,6 +78,25 @@ public class DebugPanel : MonoBehaviour
         m_Panel.DOKill();
         m_Group.DOFade(0f, m_FadeDuration).OnComplete(() => m_Group.blocksRaycasts = false);
         m_Panel.DOScale(Vector3.zero, m_ScaleDuration).SetEase(Ease.InBack);
+
+        SuppressLegacyBrushHero(false);
+    }
+
+    private static void SuppressLegacyBrushHero(bool _Suppress)
+    {
+        if (MainMenuView.Instance == null) return;
+
+        if (_Suppress)
+        {
+            if (MainMenuView.Instance.m_BrushSelectGroup != null)
+                MainMenuView.Instance.m_BrushSelectGroup.SetActive(false);
+        }
+        else
+        {
+            // Let MainMenuView's flag-driven logic decide based on the
+            // current skin-selection toggle state.
+            MainMenuView.Instance.RefreshFeatureVisibility();
+        }
     }
 
     public void ClickBoosterToggle()
@@ -81,6 +105,9 @@ public class DebugPanel : MonoBehaviour
         RefreshButtonsVisual();
         if (MainMenuView.Instance != null)
             MainMenuView.Instance.RefreshFeatureVisibility();
+        // RefreshFeatureVisibility may have re-activated the legacy brush
+        // hero — keep it hidden while we're still open.
+        SuppressLegacyBrushHero(true);
     }
 
     public void ClickSkinSelectionToggle()
@@ -89,6 +116,7 @@ public class DebugPanel : MonoBehaviour
         RefreshButtonsVisual();
         if (MainMenuView.Instance != null)
             MainMenuView.Instance.RefreshFeatureVisibility();
+        SuppressLegacyBrushHero(true);
     }
 
     private void RefreshButtonsVisual()
