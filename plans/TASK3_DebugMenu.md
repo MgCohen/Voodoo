@@ -197,10 +197,16 @@ Structure:
 
 Toggle sprites reuse the vibration on/off PNGs (`Picto_Vibreation` / `Picto_Vibreation_2`). Cosmetic only — swap for dedicated debug toggle art if desired.
 
-#### E.3 — TODO in Unity Editor (~2 min)
-1. **Drag `DebugPanel.prefab` into the scene's main Canvas** in `Game.unity` (same Canvas that hosts `MainMenuView`). It should sit alongside `MainMenuView` as a sibling — the panel is hidden via `CanvasGroup.alpha = 0` + `Panel.localScale = 0` in `Awake`.
-2. **Add a Debug button on the main menu** (clone the existing settings gear in the top-left, reposition to top-right or wherever). Wire its OnClick to the scene's `DebugPanel.ClickToggleDebugPanel()`.
-3. Done. The prefab's own internal wiring (toggle buttons, close, sprite refs) is already complete.
+#### E.3 — Debug entry lives inside SettingsPanel (new approach)
+The debug entry point is now a second icon button **inside the existing SettingsPanel** (next to the vibration toggle). Settings/Visible.anim slide distance bumped from 122 → 250 so both icons are revealed when the panel slides down.
+
+- `SettingsPanel.cs` gained `m_DebugPanel` (DebugPanel ref) + `ClickDebugButton()` method.
+- New `DebugButton` GameObject inside SettingsPanel hierarchy (Cross.png sprite as placeholder) — OnClick already wired to `SettingsPanel.ClickDebugButton`.
+
+#### E.4 — TODO in Unity Editor (~1 min)
+1. **Drag `DebugPanel.prefab` into the scene's main Canvas** in `Game.unity` (sibling of `MainMenuView`). Panel is hidden by default (CanvasGroup alpha=0 + Panel scale=0 set in Awake).
+2. **Wire the SettingsPanel reference**: select the SettingsPanel inside the MainMenuView scene instance, drag the scene's DebugPanel into the `m_Debug Panel` field.
+3. Done. Click the existing gear → panel slides down showing vibration + debug icons → click debug → DebugPanel fades + scales in.
 
 ### Step F — Verify (15 min)
 Test matrix:

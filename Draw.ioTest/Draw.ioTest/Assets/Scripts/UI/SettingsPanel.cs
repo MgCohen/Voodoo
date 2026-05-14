@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class SettingsPanel : MonoBehaviour 
+public class SettingsPanel : MonoBehaviour
 {
     public Image m_VibrationButton;
     public Sprite m_VibrationOnSprite;
     public Sprite m_VibrationOffSprite;
     public Animator m_BarAnim;
+
+    [Header("Debug entry")]
+    public DebugPanel m_DebugPanel;
 
     // Cache
     private MobileHapticManager m_Haptic;
@@ -50,6 +53,12 @@ public class SettingsPanel : MonoBehaviour
     {
         m_PanelVisible = !m_PanelVisible;
         m_BarAnim.SetBool("Visible", m_PanelVisible);
+    }
+
+    public void ClickDebugButton()
+    {
+        if (m_DebugPanel != null)
+            m_DebugPanel.ClickToggleDebugPanel();
     }
 
     private void RefreshButtonsVisual()
