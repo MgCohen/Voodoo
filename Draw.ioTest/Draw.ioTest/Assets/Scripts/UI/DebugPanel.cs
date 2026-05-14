@@ -46,12 +46,14 @@ public class DebugPanel : MonoBehaviour
 
     private void Open()
     {
+        Debug.Log("[DebugPanel] Open. before activeSelf=" + gameObject.activeSelf + " activeInHierarchy=" + gameObject.activeInHierarchy);
         // Defensive: if someone disables this GameObject in the scene, Awake
         // never ran and the panel sits at the prefab's alpha=1 / scale=1.
         // Reactivate + reset the starting state so the fade-in animates from
         // hidden every time.
         if (!gameObject.activeSelf)
             gameObject.SetActive(true);
+        Debug.Log("[DebugPanel] Open. after  activeSelf=" + gameObject.activeSelf + " activeInHierarchy=" + gameObject.activeInHierarchy);
         m_Group.alpha = 0f;
         m_Panel.localScale = Vector3.zero;
 
